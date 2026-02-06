@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { dashboardApi } from "@/services/api";
 import type { DashboardStats } from "@/types";
 import { Users, Target, CalendarClock, FileText } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
-const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
+const COLORS = ["#0d6efd", "#198754", "#ffc107", "#dc3545", "#6f42c1", "#d63384"];
 
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -15,81 +14,80 @@ export default function Dashboard() {
     dashboardApi.getStats().then(setStats).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="flex items-center justify-center h-64 text-gray-500">Loading...</div>;
-  if (!stats) return <div className="text-red-500">Failed to load dashboard</div>;
+  if (loading) return <div className="text-center py-5 text-muted">Loading...</div>;
+  if (!stats) return <div className="alert alert-danger">Failed to load dashboard</div>;
 
   const kpis = [
-    { label: "Total Leads", value: stats.leads.total, sub: `${stats.leads.new_last_30_days} new (30d)`, icon: Users, color: "text-blue-600 bg-blue-50" },
-    { label: "Open Opportunities", value: stats.opportunities.open, sub: `$${(stats.opportunities.total_value / 1000).toFixed(0)}k total value`, icon: Target, color: "text-green-600 bg-green-50" },
-    { label: "Upcoming Appointments", value: stats.appointments.upcoming, sub: `${stats.appointments.total} total`, icon: CalendarClock, color: "text-amber-600 bg-amber-50" },
-    { label: "Active Contracts", value: stats.contracts.active, sub: `${stats.contracts.unsigned} unsigned`, icon: FileText, color: "text-purple-600 bg-purple-50" },
+    { label: "Total Leads", value: stats.leads.total, sub: `${stats.leads.new_last_30_days} new (30d)`, icon: Users, color: "primary" },
+    { label: "Open Opportunities", value: stats.opportunities.open, sub: `$${(stats.opportunities.total_value / 1000).toFixed(0)}k value`, icon: Target, color: "success" },
+    { label: "Upcoming Appointments", value: stats.appointments.upcoming, sub: `${stats.appointments.total} total`, icon: CalendarClock, color: "warning" },
+    { label: "Active Contracts", value: stats.contracts.active, sub: `${stats.contracts.unsigned} unsigned`, icon: FileText, color: "info" },
   ];
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Dashboard</h2>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div>
+      <h2 className="mb-4">Dashboard</h2>
+      <div className="row g-3 mb-4">
         {kpis.map((kpi) => (
-          <Card key={kpi.label}>
-            <CardContent className="p-5">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${kpi.color}`}>
-                  <kpi.icon className="h-5 w-5" />
+          <div className="col-md-6 col-lg-3" key={kpi.label}>
+            <div className="card stats-card h-100">
+              <div className="card-body d-flex align-items-center gap-3">
+                <div className={`bg-${kpi.color} bg-opacity-10 p-2 rounded`}>
+                  <kpi.icon size={24} className={`text-${kpi.color}`} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{kpi.value}</p>
-                  <p className="text-sm text-gray-500">{kpi.label}</p>
-                  <p className="text-xs text-gray-400">{kpi.sub}</p>
+                  <h3 className="mb-0 fw-bold">{kpi.value}</h3>
+                  <small className="text-muted">{kpi.label}</small>
+                  <br />
+                  <small className="text-muted" style={{ fontSize: "0.75rem" }}>{kpi.sub}</small>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Leads by Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {stats.leads.by_status.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie data={stats.leads.by_status} dataKey="count" nameKey="status" cx="50%" cy="50%" outerRadius={80} label={({ status, count }) => `${status} (${count})`}>
-                    {stats.leads.by_status.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="text-gray-400 text-center py-10">No lead data yet</p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Opportunity Pipeline</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {stats.opportunities.by_stage.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={stats.opportunities.by_stage}>
-                  <XAxis dataKey="stage_name" tick={{ fontSize: 12 }} />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="text-gray-400 text-center py-10">No pipeline data yet</p>
-            )}
-          </CardContent>
-        </Card>
+      <div className="row g-3">
+        <div className="col-lg-6">
+          <div className="card">
+            <div className="card-header bg-white fw-semibold">Leads by Status</div>
+            <div className="card-body">
+              {stats.leads.by_status.length > 0 ? (
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie data={stats.leads.by_status} dataKey="count" nameKey="status" cx="50%" cy="50%" outerRadius={80} label={({ status, count }: { status: string; count: number }) => `${status} (${count})`}>
+                      {stats.leads.by_status.map((_: unknown, i: number) => (
+                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-muted text-center py-5">No lead data yet</p>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="col-lg-6">
+          <div className="card">
+            <div className="card-header bg-white fw-semibold">Opportunity Pipeline</div>
+            <div className="card-body">
+              {stats.opportunities.by_stage.length > 0 ? (
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={stats.opportunities.by_stage}>
+                    <XAxis dataKey="stage" tick={{ fontSize: 12 }} />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#0d6efd" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-muted text-center py-5">No pipeline data yet</p>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
