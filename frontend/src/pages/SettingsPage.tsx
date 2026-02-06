@@ -1,165 +1,201 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { settingsApi, salesStageApi, lostReasonApi, competitorApi } from "@/services/api";
 import type { CrmSetting, SalesStage, OpportunityLostReason, Competitor } from "@/types";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Trash2 } from "lucide-react";
+import Swal from "sweetalert2";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<CrmSetting | null>(null);
   const [stages, setStages] = useState<SalesStage[]>([]);
   const [reasons, setReasons] = useState<OpportunityLostReason[]>([]);
   const [competitors, setCompetitors] = useState<Competitor[]>([]);
-  const [newStage, setNewStage] = useState("");
-  const [newReason, setNewReason] = useState("");
-  const [newCompetitor, setNewCompetitor] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchAll = () => {
+    setLoading(true);
     Promise.all([
-      settingsApi.get(),
-      salesStageApi.list(),
-      lostReasonApi.list(),
-      competitorApi.list(),
+      settingsApi.get().catch(() => null),
+      salesStageApi.list().catch(() => []),
+      lostReasonApi.list().catch(() => []),
+      competitorApi.list().catch(() => []),
     ]).then(([s, st, r, c]) => {
       setSettings(s);
-      setStages(st);
-      setReasons(r);
-      setCompetitors(c);
-    });
-  }, []);
+      setStages(Array.isArray(st) ? st : []);
+      setReasons(Array.isArray(r) ? r : []);
+      setCompetitors(Array.isArray(c) ? c : []);
+    }).finally(() => setLoading(false));
+  };
 
-  const updateSetting = async (key: string, value: string | boolean | number) => {
+  useEffect(() => { fetchAll(); }, []);
+
+  const handleSaveSettings = async () => {
     if (!settings) return;
-    setSaving(true);
-    const updated = await settingsApi.update({ [key]: value });
-    setSettings(updated);
-    setSaving(false);
+    try {
+      await settingsApi.update(settings);
+      Swal.fire("Saved!", "Settings have been updated.", "success");
+    } catch {
+      Swal.fire("Error", "Failed to save settings.", "error");
+    }
   };
 
-  const addStage = async () => {
-    if (!newStage.trim()) return;
-    const stage = await salesStageApi.create({ stage_name: newStage });
-    setStages([...stages, stage]);
-    setNewStage("");
+  const handleAddStage = async () => {
+    const { value } = await Swal.fire({ title: "Add Sales Stage", input: "text", inputLabel: "Stage Name", inputPlaceholder: "Enter stage name", showCancelButton: true });
+    if (value) {
+      await salesStageApi.create({ stage_name: value });
+      Swal.fire("Added!", "Sales stage has been added.", "success");
+      fetchAll();
+    }
   };
 
-  const deleteStage = async (id: number) => {
-    await salesStageApi.delete(id);
-    setStages(stages.filter((s) => s.id !== id));
+  const handleDeleteStage = async (id: number) => {
+    const result = await Swal.fire({ title: "Delete Stage?", icon: "warning", showCancelButton: true, confirmButtonColor: "#dc3545", confirmButtonText: "Delete" });
+    if (result.isConfirmed) {
+      await salesStageApi.delete(id);
+      fetchAll();
+    }
   };
 
-  const addReason = async () => {
-    if (!newReason.trim()) return;
-    const reason = await lostReasonApi.create({ reason: newReason });
-    setReasons([...reasons, reason]);
-    setNewReason("");
+  const handleAddReason = async () => {
+    const { value } = await Swal.fire({ title: "Add Lost Reason", input: "text", inputLabel: "Reason", inputPlaceholder: "Enter lost reason", showCancelButton: true });
+    if (value) {
+      await lostReasonApi.create({ reason: value });
+      Swal.fire("Added!", "Lost reason has been added.", "success");
+      fetchAll();
+    }
   };
 
-  const deleteReason = async (id: number) => {
-    await lostReasonApi.delete(id);
-    setReasons(reasons.filter((r) => r.id !== id));
+  const handleDeleteReason = async (id: number) => {
+    const result = await Swal.fire({ title: "Delete Reason?", icon: "warning", showCancelButton: true, confirmButtonColor: "#dc3545", confirmButtonText: "Delete" });
+    if (result.isConfirmed) {
+      await lostReasonApi.delete(id);
+      fetchAll();
+    }
   };
 
-  const addCompetitor = async () => {
-    if (!newCompetitor.trim()) return;
-    const comp = await competitorApi.create({ competitor_name: newCompetitor });
-    setCompetitors([...competitors, comp]);
-    setNewCompetitor("");
+  const handleAddCompetitor = async () => {
+    const { value } = await Swal.fire({ title: "Add Competitor", input: "text", inputLabel: "Competitor Name", inputPlaceholder: "Enter competitor name", showCancelButton: true });
+    if (value) {
+      await competitorApi.create({ competitor_name: value });
+      Swal.fire("Added!", "Competitor has been added.", "success");
+      fetchAll();
+    }
   };
 
-  const deleteCompetitor = async (id: number) => {
-    await competitorApi.delete(id);
-    setCompetitors(competitors.filter((c) => c.id !== id));
+  const handleDeleteCompetitor = async (id: number) => {
+    const result = await Swal.fire({ title: "Delete Competitor?", icon: "warning", showCancelButton: true, confirmButtonColor: "#dc3545", confirmButtonText: "Delete" });
+    if (result.isConfirmed) {
+      await competitorApi.delete(id);
+      fetchAll();
+    }
   };
 
-  if (!settings) return <p className="text-gray-500 py-8 text-center">Loading settings...</p>;
+  if (loading) return <div className="text-center py-5 text-muted">Loading...</div>;
 
   return (
-    <div className="space-y-6 max-w-3xl">
-      <h2 className="text-2xl font-bold">CRM Settings</h2>
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol className="breadcrumb">
+          <li className="breadcrumb-item"><Link to="/">CRM</Link></li>
+          <li className="breadcrumb-item active">Settings</li>
+        </ol>
+      </nav>
+      <h2 className="mb-4">CRM Settings</h2>
 
-      <Card>
-        <CardHeader><CardTitle className="text-base">General Settings</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <label className="text-sm">Campaign Naming By</label>
-            <Select className="w-48" value={settings.campaign_naming_by || "Campaign Name"} onChange={(e) => updateSetting("campaign_naming_by", e.target.value)}>
-              <option value="Campaign Name">Campaign Name</option>
-              <option value="Naming Series">Naming Series</option>
-            </Select>
-          </div>
-          <div className="flex items-center justify-between">
-            <label className="text-sm">Close Opportunity After (days)</label>
-            <Input className="w-24" type="number" value={settings.close_opportunity_after_days || ""} onChange={(e) => updateSetting("close_opportunity_after_days", Number(e.target.value))} />
-          </div>
-          <div className="flex items-center justify-between">
-            <label className="text-sm">Allow Lead Duplication By Email</label>
-            <input type="checkbox" checked={settings.allow_lead_duplication_based_on_emails} onChange={(e) => updateSetting("allow_lead_duplication_based_on_emails", e.target.checked)} className="h-4 w-4" />
-          </div>
-          <div className="flex items-center justify-between">
-            <label className="text-sm">Auto Create Contact</label>
-            <input type="checkbox" checked={settings.auto_creation_of_contact} onChange={(e) => updateSetting("auto_creation_of_contact", e.target.checked)} className="h-4 w-4" />
-          </div>
-          {saving && <p className="text-xs text-blue-500">Saving...</p>}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader><CardTitle className="text-base">Sales Stages</CardTitle></CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {stages.map((s) => (
-              <div key={s.id} className="flex items-center justify-between py-1 px-2 bg-gray-50 rounded">
-                <span className="text-sm">{s.stage_name}</span>
-                <Button variant="ghost" size="icon" onClick={() => deleteStage(s.id)}><Trash2 className="h-3.5 w-3.5 text-red-500" /></Button>
+      <div className="form-container mb-4">
+        <h5 className="mb-3 border-bottom pb-2">General Settings</h5>
+        {settings && (
+          <div className="row g-3">
+            <div className="col-md-4">
+              <label className="form-label">Campaign Naming By</label>
+              <select className="form-select" value={settings.campaign_naming_by || ""} onChange={(e) => setSettings({ ...settings, campaign_naming_by: e.target.value })}>
+                <option value="">Select</option>
+                <option value="Campaign Name">Campaign Name</option>
+                <option value="Naming Series">Naming Series</option>
+              </select>
+            </div>
+            <div className="col-md-4">
+              <label className="form-label">Close Opportunity After (days)</label>
+              <input type="number" className="form-control" value={settings.close_opportunity_after_days || ""} onChange={(e) => setSettings({ ...settings, close_opportunity_after_days: Number(e.target.value) || null })} />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label">Default Valid Till (days)</label>
+              <input type="number" className="form-control" value={settings.default_valid_till || ""} onChange={(e) => setSettings({ ...settings, default_valid_till: Number(e.target.value) || null })} />
+            </div>
+            <div className="col-md-12">
+              <div className="form-check mb-2">
+                <input className="form-check-input" type="checkbox" checked={settings.allow_lead_duplication_based_on_emails} onChange={(e) => setSettings({ ...settings, allow_lead_duplication_based_on_emails: e.target.checked })} id="dupCheck" />
+                <label className="form-check-label" htmlFor="dupCheck">Allow lead duplication based on emails</label>
               </div>
-            ))}
-            <div className="flex gap-2 mt-2">
-              <Input placeholder="New stage name" value={newStage} onChange={(e) => setNewStage(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addStage()} />
-              <Button size="sm" onClick={addStage}><Plus className="h-4 w-4" /></Button>
+              <div className="form-check mb-2">
+                <input className="form-check-input" type="checkbox" checked={settings.auto_creation_of_contact} onChange={(e) => setSettings({ ...settings, auto_creation_of_contact: e.target.checked })} id="autoContact" />
+                <label className="form-check-label" htmlFor="autoContact">Auto creation of contact</label>
+              </div>
+              <div className="form-check mb-2">
+                <input className="form-check-input" type="checkbox" checked={settings.carry_forward_communication_and_comments} onChange={(e) => setSettings({ ...settings, carry_forward_communication_and_comments: e.target.checked })} id="carryFwd" />
+                <label className="form-check-label" htmlFor="carryFwd">Carry forward communication and comments</label>
+              </div>
+            </div>
+            <div className="col-md-12">
+              <button className="btn btn-primary" onClick={handleSaveSettings}>Save Settings</button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        )}
+      </div>
 
-      <Card>
-        <CardHeader><CardTitle className="text-base">Lost Reasons</CardTitle></CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {reasons.map((r) => (
-              <div key={r.id} className="flex items-center justify-between py-1 px-2 bg-gray-50 rounded">
-                <span className="text-sm">{r.reason}</span>
-                <Button variant="ghost" size="icon" onClick={() => deleteReason(r.id)}><Trash2 className="h-3.5 w-3.5 text-red-500" /></Button>
-              </div>
-            ))}
-            <div className="flex gap-2 mt-2">
-              <Input placeholder="New lost reason" value={newReason} onChange={(e) => setNewReason(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addReason()} />
-              <Button size="sm" onClick={addReason}><Plus className="h-4 w-4" /></Button>
+      <div className="row g-4">
+        <div className="col-md-4">
+          <div className="card">
+            <div className="card-header bg-white d-flex justify-content-between align-items-center">
+              <span className="fw-semibold">Sales Stages</span>
+              <button className="btn btn-sm btn-primary" onClick={handleAddStage}><Plus size={14} /></button>
             </div>
+            <ul className="list-group list-group-flush">
+              {stages.length === 0 && <li className="list-group-item text-muted text-center">No stages</li>}
+              {stages.map((s) => (
+                <li key={s.id} className="list-group-item d-flex justify-content-between align-items-center">
+                  {s.stage_name}
+                  <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteStage(s.id)}><Trash2 size={14} /></button>
+                </li>
+              ))}
+            </ul>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader><CardTitle className="text-base">Competitors</CardTitle></CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {competitors.map((c) => (
-              <div key={c.id} className="flex items-center justify-between py-1 px-2 bg-gray-50 rounded">
-                <span className="text-sm">{c.competitor_name}</span>
-                <Button variant="ghost" size="icon" onClick={() => deleteCompetitor(c.id)}><Trash2 className="h-3.5 w-3.5 text-red-500" /></Button>
-              </div>
-            ))}
-            <div className="flex gap-2 mt-2">
-              <Input placeholder="New competitor name" value={newCompetitor} onChange={(e) => setNewCompetitor(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addCompetitor()} />
-              <Button size="sm" onClick={addCompetitor}><Plus className="h-4 w-4" /></Button>
+        </div>
+        <div className="col-md-4">
+          <div className="card">
+            <div className="card-header bg-white d-flex justify-content-between align-items-center">
+              <span className="fw-semibold">Lost Reasons</span>
+              <button className="btn btn-sm btn-primary" onClick={handleAddReason}><Plus size={14} /></button>
             </div>
+            <ul className="list-group list-group-flush">
+              {reasons.length === 0 && <li className="list-group-item text-muted text-center">No reasons</li>}
+              {reasons.map((r) => (
+                <li key={r.id} className="list-group-item d-flex justify-content-between align-items-center">
+                  {r.reason}
+                  <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteReason(r.id)}><Trash2 size={14} /></button>
+                </li>
+              ))}
+            </ul>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="col-md-4">
+          <div className="card">
+            <div className="card-header bg-white d-flex justify-content-between align-items-center">
+              <span className="fw-semibold">Competitors</span>
+              <button className="btn btn-sm btn-primary" onClick={handleAddCompetitor}><Plus size={14} /></button>
+            </div>
+            <ul className="list-group list-group-flush">
+              {competitors.length === 0 && <li className="list-group-item text-muted text-center">No competitors</li>}
+              {competitors.map((c) => (
+                <li key={c.id} className="list-group-item d-flex justify-content-between align-items-center">
+                  {c.competitor_name}
+                  <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteCompetitor(c.id)}><Trash2 size={14} /></button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
