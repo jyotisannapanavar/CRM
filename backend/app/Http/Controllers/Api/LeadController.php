@@ -2,160 +2,121 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\Gender;
 use App\Enums\QualificationStatus;
 use App\Http\Controllers\Controller;
-use App\Services\LeadService;
+use App\Models\Lead;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class LeadController extends Controller
 {
-    public function __construct(private LeadService $leadService)
-    {
-    }
-
     public function index(Request $request): JsonResponse
     {
-        $leads = $this->leadService->list($request->all());
+        $query = Lead::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('company_name', 'like', "%{$search}%")
+                  ->orWhere('mobile_no', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status_id')) {
+            $query->where('status_id', $request->status_id);
+        }
+
+        if ($request->filled('source_id')) {
+            $query->where('source_id', $request->source_id);
+        }
+
+        if ($request->filled('industry_id')) {
+            $query->where('industry_id', $request->industry_id);
+        }
+
+        $leads = $query->orderBy('created_at', 'desc')
+                       ->paginate($request->per_page ?? 15);
+
         return response()->json($leads);
     }
 
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'first_name' => 'nullable|string|max:255',
+            'series' => 'nullable|string|max:255',
+            'salutation' => 'nullable|string|max:50',
+            'first_name' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',
             'last_name' => 'nullable|string|max:255',
-            'salutation' => 'nullable|string|max:50',
             'job_title' => 'nullable|string|max:255',
-            'gender' => 'nullable|string|max:50',
-            'lead_owner_id' => 'nullable|integer|exists:users,id',
-            'status' => 'nullable|string|in:Lead,Open,Replied,Opportunity,Quotation,Lost Quotation,Interested,Converted,Do Not Contact',
-            'type' => 'nullable|string|max:50',
-            'request_type' => 'nullable|string|in:Product Enquiry,Request for Information,Suggestions,Other',
-            'email_id' => 'nullable|email|max:255',
-            'website' => 'nullable|string|max:255',
-            'mobile_no' => 'nullable|string|max:50',
-            'whatsapp_no' => 'nullable|string|max:50',
+            'gender' => 'nullable|string|in:' . implode(',', Gender::values()),
+            'status_id' => 'nullable|integer|exists:statuses,id',
+            'source_id' => 'nullable|integer|exists:sources,id',
+            'request_type_id' => 'nullable|integer|exists:request_types,id',
+            'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:50',
-            'phone_ext' => 'nullable|string|max:20',
+            'mobile_no' => 'nullable|string|max:50',
+            'website' => 'nullable|string|max:255',
+            'whatsapp_no' => 'nullable|string|max:50',
             'company_name' => 'nullable|string|max:255',
-            'no_of_employees' => 'nullable|string|max:50',
             'annual_revenue' => 'nullable|numeric|min:0',
-            'industry' => 'nullable|string|max:255',
-            'market_segment' => 'nullable|string|max:255',
-            'territory' => 'nullable|string|max:255',
-            'fax' => 'nullable|string|max:50',
-            'city' => 'nullable|string|max:255',
-            'state' => 'nullable|string|max:255',
-            'country' => 'nullable|string|max:255',
-            'utm_source' => 'nullable|string|max:255',
-            'utm_medium' => 'nullable|string|max:255',
-            'utm_campaign' => 'nullable|string|max:255',
-            'utm_content' => 'nullable|string|max:255',
+            'no_of_employees' => 'nullable|string|max:50',
+            'industry_id' => 'nullable|integer|exists:industry_types,id',
             'qualification_status' => 'nullable|string|in:' . implode(',', QualificationStatus::values()),
-            'company' => 'nullable|string|max:255',
+            'qualified_by' => 'nullable|integer|exists:users,id',
+            'qualified_on' => 'nullable|date',
         ]);
 
-        try {
-            $lead = $this->leadService->create($validated);
-            return response()->json($lead, 201);
-        } catch (\InvalidArgumentException $e) {
-            return response()->json(['message' => $e->getMessage()], 422);
-        }
+        $lead = Lead::create($validated);
+        return response()->json($lead->fresh(), 201);
     }
 
     public function show(int $id): JsonResponse
     {
-        $lead = $this->leadService->find($id);
+        $lead = Lead::findOrFail($id);
         return response()->json($lead);
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $validated = $request->validate([
+            'series' => 'nullable|string|max:255',
+            'salutation' => 'nullable|string|max:50',
             'first_name' => 'nullable|string|max:255',
             'middle_name' => 'nullable|string|max:255',
             'last_name' => 'nullable|string|max:255',
-            'salutation' => 'nullable|string|max:50',
             'job_title' => 'nullable|string|max:255',
-            'gender' => 'nullable|string|max:50',
-            'lead_owner_id' => 'nullable|integer|exists:users,id',
-            'status' => 'nullable|string|in:Lead,Open,Replied,Opportunity,Quotation,Lost Quotation,Interested,Converted,Do Not Contact',
-            'type' => 'nullable|string|max:50',
-            'request_type' => 'nullable|string|in:Product Enquiry,Request for Information,Suggestions,Other',
-            'email_id' => 'nullable|email|max:255',
-            'website' => 'nullable|string|max:255',
-            'mobile_no' => 'nullable|string|max:50',
-            'whatsapp_no' => 'nullable|string|max:50',
+            'gender' => 'nullable|string|in:' . implode(',', Gender::values()),
+            'status_id' => 'nullable|integer|exists:statuses,id',
+            'source_id' => 'nullable|integer|exists:sources,id',
+            'request_type_id' => 'nullable|integer|exists:request_types,id',
+            'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:50',
-            'phone_ext' => 'nullable|string|max:20',
+            'mobile_no' => 'nullable|string|max:50',
+            'website' => 'nullable|string|max:255',
+            'whatsapp_no' => 'nullable|string|max:50',
             'company_name' => 'nullable|string|max:255',
-            'no_of_employees' => 'nullable|string|max:50',
             'annual_revenue' => 'nullable|numeric|min:0',
-            'industry' => 'nullable|string|max:255',
-            'market_segment' => 'nullable|string|max:255',
-            'territory' => 'nullable|string|max:255',
-            'fax' => 'nullable|string|max:50',
-            'city' => 'nullable|string|max:255',
-            'state' => 'nullable|string|max:255',
-            'country' => 'nullable|string|max:255',
-            'utm_source' => 'nullable|string|max:255',
-            'utm_medium' => 'nullable|string|max:255',
-            'utm_campaign' => 'nullable|string|max:255',
-            'utm_content' => 'nullable|string|max:255',
+            'no_of_employees' => 'nullable|string|max:50',
+            'industry_id' => 'nullable|integer|exists:industry_types,id',
             'qualification_status' => 'nullable|string|in:' . implode(',', QualificationStatus::values()),
             'qualified_by' => 'nullable|integer|exists:users,id',
             'qualified_on' => 'nullable|date',
-            'company' => 'nullable|string|max:255',
-            'disabled' => 'nullable|boolean',
-            'unsubscribed' => 'nullable|boolean',
         ]);
 
-        try {
-            $lead = $this->leadService->update($id, $validated);
-            return response()->json($lead);
-        } catch (\InvalidArgumentException $e) {
-            return response()->json(['message' => $e->getMessage()], 422);
-        }
+        $lead = Lead::findOrFail($id);
+        $lead->update($validated);
+        return response()->json($lead->fresh());
     }
 
     public function destroy(int $id): JsonResponse
     {
-        $this->leadService->delete($id);
+        $lead = Lead::findOrFail($id);
+        $lead->delete();
         return response()->json(null, 204);
-    }
-
-    public function convertToOpportunity(Request $request, int $id): JsonResponse
-    {
-        $data = $request->validate([
-            'opportunity_type' => 'nullable|string|max:255',
-            'sales_stage_id' => 'nullable|integer|exists:sales_stages,id',
-            'opportunity_amount' => 'nullable|numeric|min:0',
-            'expected_closing' => 'nullable|date',
-        ]);
-
-        $opportunity = $this->leadService->convertToOpportunity($id, $data);
-        return response()->json($opportunity, 201);
-    }
-
-    public function addToProspect(Request $request, int $id): JsonResponse
-    {
-        $data = $request->validate([
-            'prospect_id' => 'required|integer|exists:prospects,id',
-        ]);
-
-        $this->leadService->addToProspect($id, $data['prospect_id']);
-        return response()->json(['message' => 'Lead added to prospect']);
-    }
-
-    public function createProspect(Request $request, int $id): JsonResponse
-    {
-        $data = $request->validate([
-            'prospect_name' => 'nullable|string|max:255',
-        ]);
-
-        $prospect = $this->leadService->createProspect($id, $data['prospect_name'] ?? null);
-        return response()->json($prospect, 201);
     }
 }

@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ContractController;
 use App\Http\Controllers\Api\CrmNoteController;
 use App\Http\Controllers\Api\CrmSettingController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\EnumController;
 use App\Http\Controllers\Api\LeadController;
 use App\Http\Controllers\Api\OpportunityController;
 use App\Http\Controllers\Api\OpportunityLostReasonController;
@@ -57,6 +58,10 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('industry-types', IndustryTypeController::class);
     Route::apiResource('lost-reasons', OpportunityLostReasonController::class)->only(['index', 'store', 'destroy']);
     Route::apiResource('competitors', CompetitorController::class)->only(['index', 'store', 'destroy']);
+
+    // Enum routes
+    Route::get('enums/qualification-statuses', [EnumController::class, 'qualificationStatuses']);
+    Route::get('enums/genders', [EnumController::class, 'genders']);
 
     Route::get('settings', [CrmSettingController::class, 'show']);
     Route::put('settings', [CrmSettingController::class, 'update']);
