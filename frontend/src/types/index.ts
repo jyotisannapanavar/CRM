@@ -220,6 +220,22 @@ export interface Competitor {
   website: string | null;
 }
 
+export interface OpportunityStage {
+  id: number;
+  name: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OpportunityType {
+  id: number;
+  name: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface CrmNote {
   id: number;
   notable_type: string;

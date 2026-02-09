@@ -27,6 +27,8 @@ class DatabaseSeeder extends Seeder
             StatusSeeder::class,
             RequestTypeSeeder::class,
             IndustryTypeSeeder::class,
+            OpportunityStageSeeder::class,
+            OpportunityTypeSeeder::class,
         ]);
     }
 }
