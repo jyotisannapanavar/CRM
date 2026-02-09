@@ -9,6 +9,8 @@ import ProspectList from "./pages/ProspectList";
 import ProspectForm from "./pages/ProspectForm";
 import CampaignList from "./pages/CampaignList";
 import CampaignForm from "./pages/CampaignForm";
+import SourceList from "./pages/SourceList";
+import SourceForm from "./pages/SourceForm";
 import ContractList from "./pages/ContractList";
 import ContractForm from "./pages/ContractForm";
 import AppointmentList from "./pages/AppointmentList";
@@ -35,6 +37,9 @@ export default function App() {
         <Route path="/campaigns" element={<CampaignList />} />
         <Route path="/campaigns/new" element={<CampaignForm />} />
         <Route path="/campaigns/:id/edit" element={<CampaignForm />} />
+        <Route path="/sources" element={<SourceList />} />
+        <Route path="/sources/new" element={<SourceForm />} />
+        <Route path="/sources/:id/edit" element={<SourceForm />} />
         <Route path="/contracts" element={<ContractList />} />
         <Route path="/contracts/new" element={<ContractForm />} />
         <Route path="/contracts/:id/edit" element={<ContractForm />} />

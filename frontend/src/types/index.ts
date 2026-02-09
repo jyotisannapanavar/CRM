@@ -101,10 +101,18 @@ export interface Prospect {
   updated_at: string;
 }
 
+export interface Source {
+  id: number;
+  name: string;
+  source_code: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Campaign {
   id: number;
-  campaign_name: string;
-  description: string | null;
+  name: string;
+  campaign_code: string | null;
   email_schedules: CampaignEmailSchedule[];
   email_campaigns: EmailCampaign[];
   created_at: string;

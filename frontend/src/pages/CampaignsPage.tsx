@@ -3,7 +3,6 @@ import { campaignApi } from "@/services/api";
 import type { Campaign } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Dialog } from "@/components/ui/dialog";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
@@ -30,7 +29,7 @@ export default function CampaignsPage() {
   const openCreate = () => { setEditing(null); setForm({}); setDialogOpen(true); };
   const openEdit = (c: Campaign) => {
     setEditing(c);
-    setForm({ campaign_name: c.campaign_name, description: c.description || "" });
+    setForm({ name: c.name, campaign_code: c.campaign_code || "" });
     setDialogOpen(true);
   };
 
@@ -75,7 +74,7 @@ export default function CampaignsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Campaign Name</TableHead>
-                <TableHead>Description</TableHead>
+                <TableHead>Campaign Code</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -83,8 +82,8 @@ export default function CampaignsPage() {
             <TableBody>
               {campaigns.map((c) => (
                 <TableRow key={c.id}>
-                  <TableCell className="font-medium">{c.campaign_name}</TableCell>
-                  <TableCell className="max-w-xs truncate">{c.description || "-"}</TableCell>
+                  <TableCell className="font-medium">{c.name}</TableCell>
+                  <TableCell className="max-w-xs truncate">{c.campaign_code || "-"}</TableCell>
                   <TableCell>{new Date(c.created_at).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right space-x-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(c)}><Pencil className="h-4 w-4" /></Button>
@@ -101,11 +100,11 @@ export default function CampaignsPage() {
         <div className="space-y-3">
           <div>
             <label className="text-xs font-medium text-gray-600">Campaign Name *</label>
-            <Input value={form.campaign_name || ""} onChange={(e) => setField("campaign_name", e.target.value)} />
+            <Input value={form.name || ""} onChange={(e) => setField("name", e.target.value)} />
           </div>
           <div>
-            <label className="text-xs font-medium text-gray-600">Description</label>
-            <Textarea value={form.description || ""} onChange={(e) => setField("description", e.target.value)} rows={3} />
+            <label className="text-xs font-medium text-gray-600">Campaign Code</label>
+            <Input value={form.campaign_code || ""} onChange={(e) => setField("campaign_code", e.target.value)} />
           </div>
         </div>
         <div className="flex justify-end gap-2 mt-4">

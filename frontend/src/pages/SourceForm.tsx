@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { campaignApi } from "@/services/api";
+import { sourceApi } from "@/services/api";
 import Swal from "sweetalert2";
 
-export default function CampaignForm() {
+export default function SourceForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEdit = Boolean(id);
@@ -13,10 +13,10 @@ export default function CampaignForm() {
   useEffect(() => {
     if (id) {
       setLoading(true);
-      campaignApi.get(Number(id)).then((item) => {
+      sourceApi.get(Number(id)).then((item) => {
         setForm({
           name: item.name || "",
-          campaign_code: item.campaign_code || "",
+          source_code: item.source_code || "",
         });
       }).finally(() => setLoading(false));
     }
@@ -28,15 +28,15 @@ export default function CampaignForm() {
     e.preventDefault();
     try {
       if (isEdit) {
-        await campaignApi.update(Number(id), form);
-        Swal.fire("Updated!", "Campaign has been updated.", "success");
+        await sourceApi.update(Number(id), form);
+        Swal.fire("Updated!", "Source has been updated.", "success");
       } else {
-        await campaignApi.create(form);
-        Swal.fire("Created!", "Campaign has been created.", "success");
+        await sourceApi.create(form);
+        Swal.fire("Created!", "Source has been created.", "success");
       }
-      navigate("/campaigns");
+      navigate("/sources");
     } catch {
-      Swal.fire("Error", "Failed to save campaign.", "error");
+      Swal.fire("Error", "Failed to save source.", "error");
     }
   };
 
@@ -47,29 +47,29 @@ export default function CampaignForm() {
       <nav aria-label="breadcrumb">
         <ol className="breadcrumb">
           <li className="breadcrumb-item"><Link to="/">CRM</Link></li>
-          <li className="breadcrumb-item"><Link to="/campaigns">Campaign</Link></li>
+          <li className="breadcrumb-item"><Link to="/sources">Sources</Link></li>
           <li className="breadcrumb-item active">{isEdit ? "Edit" : "New"}</li>
         </ol>
       </nav>
-      <h2 className="mb-4">{isEdit ? "Edit Campaign" : "New Campaign"}</h2>
+      <h2 className="mb-4">{isEdit ? "Edit Source" : "New Source"}</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-container mb-4">
-          <h5 className="mb-3 border-bottom pb-2">Campaign Details</h5>
+          <h5 className="mb-3 border-bottom pb-2">Source Details</h5>
           <div className="row g-3">
             <div className="col-md-6">
-              <label className="form-label">Campaign Name <span className="text-danger">*</span></label>
+              <label className="form-label">Source Name <span className="text-danger">*</span></label>
               <input className="form-control" value={form.name || ""} onChange={(e) => setField("name", e.target.value)} required />
             </div>
             <div className="col-md-6">
-              <label className="form-label">Campaign Code</label>
-              <input className="form-control" value={form.campaign_code || ""} onChange={(e) => setField("campaign_code", e.target.value)} />
+              <label className="form-label">Source Code</label>
+              <input className="form-control" value={form.source_code || ""} onChange={(e) => setField("source_code", e.target.value)} />
             </div>
           </div>
         </div>
 
         <div className="d-flex gap-2">
           <button type="submit" className="btn btn-primary">Save</button>
-          <Link to="/campaigns" className="btn btn-secondary">Cancel</Link>
+          <Link to="/sources" className="btn btn-secondary">Cancel</Link>
         </div>
       </form>
     </div>
