@@ -1,35 +1,38 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { leadApi } from "@/services/api";
-import type { Lead } from "@/types";
-import { Plus, Pencil, Trash2, ArrowRightLeft } from "lucide-react";
+import { leadApi, statusApi, sourceApi } from "@/services/api";
+import type { Lead, Status, Source } from "@/types";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import Swal from "sweetalert2";
-
-const STATUS_OPTIONS = ["Lead", "Open", "Replied", "Opportunity", "Quotation", "Lost Quotation", "Interested", "Converted", "Do Not Contact"];
-
-const statusBadge = (s: string) => {
-  if (s === "Converted" || s === "Opportunity") return "bg-success";
-  if (s === "Lost Quotation" || s === "Do Not Contact") return "bg-danger";
-  if (s === "Open" || s === "Interested") return "bg-warning text-dark";
-  return "bg-secondary";
-};
 
 export default function LeadList() {
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [statuses, setStatuses] = useState<Status[]>([]);
+  const [sources, setSources] = useState<Source[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [sourceFilter, setSourceFilter] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    Promise.all([statusApi.list(), sourceApi.list()])
+      .then(([statusRes, sourceRes]) => {
+        setStatuses(Array.isArray(statusRes) ? statusRes : []);
+        setSources(Array.isArray(sourceRes) ? sourceRes : []);
+      });
+  }, []);
 
   const fetchLeads = useCallback(() => {
     setLoading(true);
     const params: Record<string, string> = {};
     if (search) params.search = search;
-    if (statusFilter) params.status = statusFilter;
+    if (statusFilter) params.status_id = statusFilter;
+    if (sourceFilter) params.source_id = sourceFilter;
     leadApi.list(params).then((res) => {
       setLeads(Array.isArray(res) ? res : res.data || []);
     }).finally(() => setLoading(false));
-  }, [search, statusFilter]);
+  }, [search, statusFilter, sourceFilter]);
 
   useEffect(() => { fetchLeads(); }, [fetchLeads]);
 
@@ -42,19 +45,6 @@ export default function LeadList() {
     }
   };
 
-  const handleConvert = async (id: number) => {
-    const result = await Swal.fire({ title: "Convert to Opportunity?", text: "This will create a new opportunity from this lead.", icon: "question", showCancelButton: true, confirmButtonText: "Yes, convert!" });
-    if (result.isConfirmed) {
-      try {
-        await leadApi.convertToOpportunity(id, {});
-        Swal.fire("Converted!", "Lead has been converted to an opportunity.", "success");
-        navigate("/opportunities");
-      } catch {
-        Swal.fire("Error", "Failed to convert lead.", "error");
-      }
-    }
-  };
-
   return (
     <div>
       <nav aria-label="breadcrumb">
@@ -64,17 +54,23 @@ export default function LeadList() {
         </ol>
       </nav>
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2>Lead</h2>
+        <h2>Leads</h2>
         <Link to="/leads/new" className="btn btn-primary"><Plus size={16} className="me-1" /> Add Lead</Link>
       </div>
       <div className="row g-2 mb-3">
         <div className="col-md-4">
           <input type="text" className="form-control" placeholder="Search leads..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        <div className="col-md-3">
+        <div className="col-md-2">
           <select className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="">All Statuses</option>
-            {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+            {statuses.map((s) => <option key={s.id} value={s.id}>{s.status_name}</option>)}
+          </select>
+        </div>
+        <div className="col-md-2">
+          <select className="form-select" value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)}>
+            <option value="">All Sources</option>
+            {sources.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </div>
       </div>
@@ -91,24 +87,31 @@ export default function LeadList() {
           <table className="table table-hover mb-0">
             <thead className="table-light">
               <tr>
-                <th>Title</th>
+                <th>Name</th>
                 <th>Status</th>
-                <th>Organization Name</th>
+                <th>Source</th>
+                <th>Company</th>
                 <th>Email</th>
-                <th>Territory</th>
+                <th>Mobile</th>
                 <th className="text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
               {leads.map((lead) => (
                 <tr key={lead.id}>
-                  <td className="fw-medium">{lead.first_name} {lead.last_name}</td>
-                  <td><span className={`badge ${statusBadge(lead.status)}`}>{lead.status}</span></td>
+                  <td className="fw-medium">
+                    {lead.salutation} {lead.first_name} {lead.middle_name} {lead.last_name}
+                  </td>
+                  <td>
+                    {lead.status ? (
+                      <span className="badge bg-secondary">{lead.status.status_name}</span>
+                    ) : "-"}
+                  </td>
+                  <td>{lead.source?.name || "-"}</td>
                   <td>{lead.company_name || "-"}</td>
-                  <td>{lead.email_id || "-"}</td>
-                  <td>{lead.territory || "-"}</td>
+                  <td>{lead.email || "-"}</td>
+                  <td>{lead.mobile_no || "-"}</td>
                   <td className="text-end">
-                    <button className="btn btn-sm btn-outline-info me-1" title="Convert to Opportunity" onClick={() => handleConvert(lead.id)}><ArrowRightLeft size={14} /></button>
                     <Link to={`/leads/${lead.id}/edit`} className="btn btn-sm btn-outline-secondary me-1" title="Edit"><Pencil size={14} /></Link>
                     <button className="btn btn-sm btn-outline-danger" title="Delete" onClick={() => handleDelete(lead.id)}><Trash2 size={14} /></button>
                   </td>

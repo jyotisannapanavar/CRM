@@ -204,4 +204,15 @@ export const settingsApi = {
     api.put<CrmSetting>("/settings", data).then((r) => r.data),
 };
 
+export interface EnumOption {
+  value: string;
+  label: string;
+}
+
+export const enumApi = {
+  qualificationStatuses: () => api.get<EnumOption[]>("/enums/qualification-statuses").then((r) => r.data),
+  genders: () => api.get<EnumOption[]>("/enums/genders").then((r) => r.data),
+};
+
 export default api;
+
