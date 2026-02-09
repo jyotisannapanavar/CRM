@@ -6,69 +6,73 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Opportunity extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'opportunity_from', 'party_id', 'customer_name', 'status',
-        'opportunity_type', 'opportunity_owner_id', 'sales_stage_id',
-        'expected_closing', 'probability', 'no_of_employees', 'annual_revenue',
-        'customer_group', 'industry', 'market_segment', 'website',
-        'city', 'state', 'country', 'territory', 'currency', 'conversion_rate',
-        'opportunity_amount', 'base_opportunity_amount',
-        'utm_source', 'utm_medium', 'utm_campaign', 'utm_content',
-        'company', 'transaction_date', 'language', 'title',
-        'contact_person', 'job_title', 'contact_email', 'contact_mobile',
-        'whatsapp', 'phone', 'phone_ext', 'order_lost_reason',
-        'total', 'base_total',
+        'naming_series',
+        'opportunity_type_id',
+        'opportunity_stage_id',
+        'opportunity_from',
+        'source_id',
+        'expected_closing',
+        'party_name',
+        'opportunity_owner',
+        'probability',
+        'status_id',
+        'company_name',
+        'industry_id',
+        'no_of_employees',
+        'city',
+        'state',
+        'country',
+        'annual_revenue',
+        'market_segment',
+        'currency',
+        'opportunity_amount',
     ];
 
     protected $casts = [
         'annual_revenue' => 'decimal:2',
         'opportunity_amount' => 'decimal:2',
-        'base_opportunity_amount' => 'decimal:2',
-        'total' => 'decimal:2',
-        'base_total' => 'decimal:2',
         'probability' => 'decimal:2',
-        'conversion_rate' => 'decimal:4',
         'expected_closing' => 'date',
-        'transaction_date' => 'date',
     ];
 
-    protected static function booted(): void
+    protected $with = ['opportunityType', 'opportunityStage', 'source', 'status', 'industry', 'owner'];
+
+    public function opportunityType(): BelongsTo
     {
-        static::saving(function (Opportunity $opp) {
-            $opp->calculateTotals();
-        });
+        return $this->belongsTo(OpportunityType::class);
     }
 
-    public function calculateTotals(): void
+    public function opportunityStage(): BelongsTo
     {
-        if ($this->exists) {
-            $total = $this->items()->sum('amount');
-            $baseTotal = $this->items()->sum('base_amount');
-            $this->total = $total;
-            $this->base_total = $baseTotal;
-        }
+        return $this->belongsTo(OpportunityStage::class);
     }
 
-    public function opportunityOwner(): BelongsTo
+    public function source(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'opportunity_owner_id');
+        return $this->belongsTo(Source::class);
     }
 
-    public function salesStage(): BelongsTo
+    public function status(): BelongsTo
     {
-        return $this->belongsTo(SalesStage::class);
+        return $this->belongsTo(Status::class);
     }
 
-    public function items(): HasMany
+    public function industry(): BelongsTo
     {
-        return $this->hasMany(OpportunityItem::class);
+        return $this->belongsTo(IndustryType::class, 'industry_id');
+    }
+
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'opportunity_owner');
     }
 
     public function lostReasons(): BelongsToMany

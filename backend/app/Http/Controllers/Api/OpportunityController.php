@@ -3,103 +3,111 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Services\OpportunityService;
+use App\Models\Opportunity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class OpportunityController extends Controller
 {
-    public function __construct(private OpportunityService $opportunityService)
-    {
-    }
-
     public function index(Request $request): JsonResponse
     {
-        $opportunities = $this->opportunityService->list($request->all());
+        $query = Opportunity::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('party_name', 'like', "%{$search}%")
+                  ->orWhere('company_name', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status_id')) {
+            $query->where('status_id', $request->status_id);
+        }
+
+        if ($request->filled('opportunity_type_id')) {
+            $query->where('opportunity_type_id', $request->opportunity_type_id);
+        }
+
+        if ($request->filled('opportunity_stage_id')) {
+            $query->where('opportunity_stage_id', $request->opportunity_stage_id);
+        }
+
+        $opportunities = $query->orderBy('created_at', 'desc')
+                               ->paginate($request->per_page ?? 15);
+
         return response()->json($opportunities);
     }
 
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'opportunity_from' => 'required|string|in:Lead,Prospect,Customer',
-            'party_id' => 'required|integer',
-            'customer_name' => 'nullable|string|max:255',
-            'status' => 'nullable|string|in:Open,Quotation,Converted,Lost,Replied,Closed',
-            'opportunity_type' => 'nullable|string|max:255',
-            'opportunity_owner_id' => 'nullable|integer|exists:users,id',
-            'sales_stage_id' => 'nullable|integer|exists:sales_stages,id',
+            'naming_series' => 'nullable|string|max:255',
+            'opportunity_type_id' => 'nullable|integer|exists:opportunity_types,id',
+            'opportunity_stage_id' => 'nullable|integer|exists:opportunity_stages,id',
+            'opportunity_from' => 'nullable|string|max:255',
+            'source_id' => 'nullable|integer|exists:sources,id',
             'expected_closing' => 'nullable|date',
+            'party_name' => 'nullable|string|max:255',
+            'opportunity_owner' => 'nullable|integer|exists:users,id',
             'probability' => 'nullable|numeric|min:0|max:100',
-            'opportunity_amount' => 'nullable|numeric|min:0',
-            'currency' => 'nullable|string|max:10',
-            'conversion_rate' => 'nullable|numeric|min:0',
-            'company' => 'nullable|string|max:255',
-            'transaction_date' => 'nullable|date',
-            'contact_person' => 'nullable|string|max:255',
-            'contact_email' => 'nullable|email|max:255',
-            'contact_mobile' => 'nullable|string|max:50',
-            'territory' => 'nullable|string|max:255',
-            'industry' => 'nullable|string|max:255',
-            'market_segment' => 'nullable|string|max:255',
-            'website' => 'nullable|string|max:255',
+            'status_id' => 'nullable|integer|exists:statuses,id',
+            'company_name' => 'nullable|string|max:255',
+            'industry_id' => 'nullable|integer|exists:industry_types,id',
+            'no_of_employees' => 'nullable|string|max:50',
             'city' => 'nullable|string|max:255',
             'state' => 'nullable|string|max:255',
             'country' => 'nullable|string|max:255',
-            'items' => 'nullable|array',
-            'items.*.item_code' => 'nullable|string|max:255',
-            'items.*.item_name' => 'nullable|string|max:255',
-            'items.*.qty' => 'nullable|numeric|min:0',
-            'items.*.rate' => 'nullable|numeric|min:0',
-            'items.*.uom' => 'nullable|string|max:50',
+            'annual_revenue' => 'nullable|numeric|min:0',
+            'market_segment' => 'nullable|string|max:255',
+            'currency' => 'nullable|string|max:10',
+            'opportunity_amount' => 'nullable|numeric|min:0',
         ]);
 
-        $opportunity = $this->opportunityService->create($validated);
-        return response()->json($opportunity, 201);
+        $opportunity = Opportunity::create($validated);
+        return response()->json($opportunity->fresh(), 201);
     }
 
     public function show(int $id): JsonResponse
     {
-        $opportunity = $this->opportunityService->find($id);
+        $opportunity = Opportunity::findOrFail($id);
         return response()->json($opportunity);
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $validated = $request->validate([
-            'opportunity_from' => 'nullable|string|in:Lead,Prospect,Customer',
-            'party_id' => 'nullable|integer',
-            'customer_name' => 'nullable|string|max:255',
-            'status' => 'nullable|string|in:Open,Quotation,Converted,Lost,Replied,Closed',
-            'opportunity_type' => 'nullable|string|max:255',
-            'opportunity_owner_id' => 'nullable|integer|exists:users,id',
-            'sales_stage_id' => 'nullable|integer|exists:sales_stages,id',
+            'naming_series' => 'nullable|string|max:255',
+            'opportunity_type_id' => 'nullable|integer|exists:opportunity_types,id',
+            'opportunity_stage_id' => 'nullable|integer|exists:opportunity_stages,id',
+            'opportunity_from' => 'nullable|string|max:255',
+            'source_id' => 'nullable|integer|exists:sources,id',
             'expected_closing' => 'nullable|date',
+            'party_name' => 'nullable|string|max:255',
+            'opportunity_owner' => 'nullable|integer|exists:users,id',
             'probability' => 'nullable|numeric|min:0|max:100',
-            'opportunity_amount' => 'nullable|numeric|min:0',
+            'status_id' => 'nullable|integer|exists:statuses,id',
+            'company_name' => 'nullable|string|max:255',
+            'industry_id' => 'nullable|integer|exists:industry_types,id',
+            'no_of_employees' => 'nullable|string|max:50',
+            'city' => 'nullable|string|max:255',
+            'state' => 'nullable|string|max:255',
+            'country' => 'nullable|string|max:255',
+            'annual_revenue' => 'nullable|numeric|min:0',
+            'market_segment' => 'nullable|string|max:255',
             'currency' => 'nullable|string|max:10',
-            'conversion_rate' => 'nullable|numeric|min:0',
-            'company' => 'nullable|string|max:255',
-            'transaction_date' => 'nullable|date',
-            'contact_person' => 'nullable|string|max:255',
-            'contact_email' => 'nullable|email|max:255',
-            'contact_mobile' => 'nullable|string|max:50',
-            'territory' => 'nullable|string|max:255',
-            'items' => 'nullable|array',
-            'items.*.item_code' => 'nullable|string|max:255',
-            'items.*.item_name' => 'nullable|string|max:255',
-            'items.*.qty' => 'nullable|numeric|min:0',
-            'items.*.rate' => 'nullable|numeric|min:0',
-            'items.*.uom' => 'nullable|string|max:50',
+            'opportunity_amount' => 'nullable|numeric|min:0',
         ]);
 
-        $opportunity = $this->opportunityService->update($id, $validated);
-        return response()->json($opportunity);
+        $opportunity = Opportunity::findOrFail($id);
+        $opportunity->update($validated);
+        return response()->json($opportunity->fresh());
     }
 
     public function destroy(int $id): JsonResponse
     {
-        $this->opportunityService->delete($id);
+        $opportunity = Opportunity::findOrFail($id);
+        $opportunity->delete();
         return response()->json(null, 204);
     }
 
@@ -113,13 +121,14 @@ class OpportunityController extends Controller
             'detailed_reason' => 'nullable|string',
         ]);
 
-        $opportunity = $this->opportunityService->declareLost(
-            $id,
-            $validated['lost_reason_ids'],
-            $validated['competitor_ids'] ?? [],
-            $validated['detailed_reason'] ?? null
-        );
-        return response()->json($opportunity);
+        $opportunity = Opportunity::findOrFail($id);
+        $opportunity->lostReasons()->sync($validated['lost_reason_ids']);
+        
+        if (!empty($validated['competitor_ids'])) {
+            $opportunity->competitors()->sync($validated['competitor_ids']);
+        }
+        
+        return response()->json($opportunity->fresh());
     }
 
     public function setMultipleStatus(Request $request): JsonResponse
@@ -127,10 +136,11 @@ class OpportunityController extends Controller
         $validated = $request->validate([
             'ids' => 'required|array',
             'ids.*' => 'integer|exists:opportunities,id',
-            'status' => 'required|string|in:Open,Quotation,Converted,Lost,Replied,Closed',
+            'status_id' => 'required|integer|exists:statuses,id',
         ]);
 
-        $count = $this->opportunityService->setMultipleStatus($validated['ids'], $validated['status']);
+        $count = Opportunity::whereIn('id', $validated['ids'])
+                            ->update(['status_id' => $validated['status_id']]);
         return response()->json(['updated' => $count]);
     }
 }
