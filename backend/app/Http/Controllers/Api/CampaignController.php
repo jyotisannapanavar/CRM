@@ -22,8 +22,8 @@ class CampaignController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'campaign_name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'name' => 'required|string|max:255',
+            'campaign_code' => 'nullable|string|max:255',
             'email_schedules' => 'nullable|array',
             'email_schedules.*.email_template' => 'nullable|string|max:255',
             'email_schedules.*.send_after_days' => 'nullable|integer|min:0',
@@ -42,8 +42,8 @@ class CampaignController extends Controller
     public function update(Request $request, int $id): JsonResponse
     {
         $validated = $request->validate([
-            'campaign_name' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
+            'name' => 'nullable|string|max:255',
+            'campaign_code' => 'nullable|string|max:255',
             'email_schedules' => 'nullable|array',
             'email_schedules.*.email_template' => 'nullable|string|max:255',
             'email_schedules.*.send_after_days' => 'nullable|integer|min:0',
