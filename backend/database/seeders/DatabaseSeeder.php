@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             StatusSeeder::class,
             RequestTypeSeeder::class,
+            IndustryTypeSeeder::class,
         ]);
     }
 }

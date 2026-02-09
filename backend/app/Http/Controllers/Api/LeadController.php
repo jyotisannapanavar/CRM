@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\QualificationStatus;
 use App\Http\Controllers\Controller;
 use App\Services\LeadService;
 use Illuminate\Http\JsonResponse;
@@ -52,7 +53,7 @@ class LeadController extends Controller
             'utm_medium' => 'nullable|string|max:255',
             'utm_campaign' => 'nullable|string|max:255',
             'utm_content' => 'nullable|string|max:255',
-            'qualification_status' => 'nullable|string|in:Unqualified,In Process,Qualified',
+            'qualification_status' => 'nullable|string|in:' . implode(',', QualificationStatus::values()),
             'company' => 'nullable|string|max:255',
         ]);
 
@@ -103,7 +104,7 @@ class LeadController extends Controller
             'utm_medium' => 'nullable|string|max:255',
             'utm_campaign' => 'nullable|string|max:255',
             'utm_content' => 'nullable|string|max:255',
-            'qualification_status' => 'nullable|string|in:Unqualified,In Process,Qualified',
+            'qualification_status' => 'nullable|string|in:' . implode(',', QualificationStatus::values()),
             'qualified_by' => 'nullable|integer|exists:users,id',
             'qualified_on' => 'nullable|date',
             'company' => 'nullable|string|max:255',

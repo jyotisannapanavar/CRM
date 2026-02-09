@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\QualificationStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -29,6 +30,7 @@ class Lead extends Model
         'unsubscribed' => 'boolean',
         'blog_subscriber' => 'boolean',
         'qualified_on' => 'date',
+        'qualification_status' => QualificationStatus::class,
     ];
 
     protected static function booted(): void

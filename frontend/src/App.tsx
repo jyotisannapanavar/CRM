@@ -16,6 +16,7 @@ import AppointmentForm from "./pages/AppointmentForm";
 import SettingsPage from "./pages/SettingsPage";
 import StatusList from "./pages/StatusList";
 import RequestTypeList from "./pages/RequestTypeList";
+import IndustryTypeList from "./pages/IndustryTypeList";
 
 export default function App() {
   return (
@@ -43,6 +44,7 @@ export default function App() {
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/statuses" element={<StatusList />} />
         <Route path="/request-types" element={<RequestTypeList />} />
+        <Route path="/industry-types" element={<IndustryTypeList />} />
       </Route>
     </Routes>
   );

@@ -9,6 +9,7 @@ import type {
   SalesStage,
   Status,
   RequestType,
+  IndustryType,
   OpportunityLostReason,
   Competitor,
   CrmNote,
@@ -130,6 +131,16 @@ export const requestTypeApi = {
   update: (id: number, data: Partial<RequestType>) =>
     api.put<RequestType>(`/request-types/${id}`, data).then((r) => r.data),
   delete: (id: number) => api.delete(`/request-types/${id}`),
+};
+
+export const industryTypeApi = {
+  list: () => api.get<IndustryType[]>("/industry-types").then((r) => r.data),
+  get: (id: number) => api.get<IndustryType>(`/industry-types/${id}`).then((r) => r.data),
+  create: (data: Partial<IndustryType>) =>
+    api.post<IndustryType>("/industry-types", data).then((r) => r.data),
+  update: (id: number, data: Partial<IndustryType>) =>
+    api.put<IndustryType>(`/industry-types/${id}`, data).then((r) => r.data),
+  delete: (id: number) => api.delete(`/industry-types/${id}`),
 };
 
 export const lostReasonApi = {
