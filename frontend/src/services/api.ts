@@ -4,6 +4,7 @@ import type {
   Opportunity,
   Prospect,
   Campaign,
+  Source,
   Contract,
   Appointment,
   SalesStage,
@@ -77,6 +78,16 @@ export const campaignApi = {
   update: (id: number, data: Partial<Campaign>) =>
     api.put<Campaign>(`/campaigns/${id}`, data).then((r) => r.data),
   delete: (id: number) => api.delete(`/campaigns/${id}`),
+};
+
+export const sourceApi = {
+  list: () => api.get<Source[]>("/sources").then((r) => r.data),
+  get: (id: number) => api.get<Source>(`/sources/${id}`).then((r) => r.data),
+  create: (data: Partial<Source>) =>
+    api.post<Source>("/sources", data).then((r) => r.data),
+  update: (id: number, data: Partial<Source>) =>
+    api.put<Source>(`/sources/${id}`, data).then((r) => r.data),
+  delete: (id: number) => api.delete(`/sources/${id}`),
 };
 
 export const contractApi = {
