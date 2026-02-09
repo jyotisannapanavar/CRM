@@ -24,6 +24,16 @@ const api = axios.create({
   headers: { "Content-Type": "application/json", Accept: "application/json" },
 });
 
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+export const userApi = {
+  list: () => api.get<User[]>("/users").then((r) => r.data),
+};
+
 export const dashboardApi = {
   getStats: () => api.get<DashboardStats>("/dashboard/stats").then((r) => r.data),
   getLeadFunnel: () => api.get("/dashboard/lead-conversion-funnel").then((r) => r.data),

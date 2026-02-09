@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { leadApi, statusApi, sourceApi, requestTypeApi, industryTypeApi, enumApi, EnumOption } from "@/services/api";
+import { leadApi, statusApi, sourceApi, requestTypeApi, industryTypeApi, enumApi, userApi, EnumOption, User } from "@/services/api";
 import type { Status, Source, RequestType, IndustryType } from "@/types";
 import Swal from "sweetalert2";
 
@@ -21,6 +21,7 @@ export default function LeadForm() {
   const [industries, setIndustries] = useState<IndustryType[]>([]);
   const [genders, setGenders] = useState<EnumOption[]>([]);
   const [qualificationStatuses, setQualificationStatuses] = useState<EnumOption[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
     // Load dropdown options
@@ -31,13 +32,15 @@ export default function LeadForm() {
       industryTypeApi.list(),
       enumApi.genders(),
       enumApi.qualificationStatuses(),
-    ]).then(([statusRes, sourceRes, requestTypeRes, industryRes, genderRes, qualStatusRes]) => {
+      userApi.list(),
+    ]).then(([statusRes, sourceRes, requestTypeRes, industryRes, genderRes, qualStatusRes, usersRes]) => {
       setStatuses(Array.isArray(statusRes) ? statusRes : []);
       setSources(Array.isArray(sourceRes) ? sourceRes : []);
       setRequestTypes(Array.isArray(requestTypeRes) ? requestTypeRes : []);
       setIndustries(Array.isArray(industryRes) ? industryRes : []);
       setGenders(Array.isArray(genderRes) ? genderRes : []);
       setQualificationStatuses(Array.isArray(qualStatusRes) ? qualStatusRes : []);
+      setUsers(Array.isArray(usersRes) ? usersRes : []);
     });
   }, []);
 
@@ -66,6 +69,8 @@ export default function LeadForm() {
           no_of_employees: lead.no_of_employees || "",
           industry_id: lead.industry_id || "",
           qualification_status: lead.qualification_status || "",
+          qualified_by: lead.qualified_by || "",
+          qualified_on: lead.qualified_on ? lead.qualified_on.split('T')[0] : "",
         });
       }).finally(() => setLoading(false));
     }
@@ -78,11 +83,15 @@ export default function LeadForm() {
     try {
       // Convert empty strings to null for foreign keys
       const payload = { ...form };
-      ['status_id', 'source_id', 'request_type_id', 'industry_id'].forEach(key => {
+      ['status_id', 'source_id', 'request_type_id', 'industry_id', 'qualified_by'].forEach(key => {
         if (payload[key] === '' || payload[key] === null) {
           payload[key] = null;
         }
       });
+      // Convert empty date to null
+      if (payload.qualified_on === '') {
+        payload.qualified_on = null;
+      }
 
       if (isEdit) {
         await leadApi.update(Number(id), payload);
@@ -245,6 +254,17 @@ export default function LeadForm() {
                 <option value="">Select</option>
                 {qualificationStatuses.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
               </select>
+            </div>
+            <div className="col-md-4">
+              <label className="form-label">Qualified By</label>
+              <select className="form-select" value={form.qualified_by?.toString() || ""} onChange={(e) => setField("qualified_by", e.target.value)}>
+                <option value="">Select User</option>
+                {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+              </select>
+            </div>
+            <div className="col-md-4">
+              <label className="form-label">Qualified On</label>
+              <input type="date" className="form-control" value={form.qualified_on?.toString() || ""} onChange={(e) => setField("qualified_on", e.target.value)} />
             </div>
           </div>
         </div>
