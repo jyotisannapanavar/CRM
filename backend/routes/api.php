@@ -17,11 +17,15 @@ use App\Http\Controllers\Api\SourceController;
 use App\Http\Controllers\Api\StatusController;
 use App\Http\Controllers\Api\RequestTypeController;
 use App\Http\Controllers\Api\IndustryTypeController;
+use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\OpportunityStageController;
 use App\Http\Controllers\Api\OpportunityTypeController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
+    // Users
+    Route::get('users', [UserController::class, 'index']);
+    
     Route::get('dashboard/stats', [DashboardController::class, 'stats']);
     Route::get('dashboard/lead-conversion-funnel', [DashboardController::class, 'leadConversionFunnel']);
     Route::get('dashboard/opportunity-pipeline', [DashboardController::class, 'opportunityPipeline']);
