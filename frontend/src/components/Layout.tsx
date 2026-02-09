@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { LayoutDashboard, Users, Target, Building2, Megaphone, FileText, CalendarClock, Settings } from "lucide-react";
+import { LayoutDashboard, Users, Target, Building2, Megaphone, Globe, FileText, CalendarClock, Settings } from "lucide-react";
 
 const links = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -7,6 +7,7 @@ const links = [
   { to: "/opportunities", label: "Opportunities", icon: Target },
   { to: "/prospects", label: "Prospects", icon: Building2 },
   { to: "/campaigns", label: "Campaigns", icon: Megaphone },
+  { to: "/sources", label: "Sources", icon: Globe },
   { to: "/contracts", label: "Contracts", icon: FileText },
   { to: "/appointments", label: "Appointments", icon: CalendarClock },
   { to: "/settings", label: "Settings", icon: Settings },
