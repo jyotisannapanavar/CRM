@@ -13,6 +13,8 @@ import type {
   IndustryType,
   OpportunityLostReason,
   Competitor,
+  OpportunityStage,
+  OpportunityType,
   CrmNote,
   CrmSetting,
   DashboardStats,
@@ -176,6 +178,26 @@ export const competitorApi = {
   create: (data: Partial<Competitor>) =>
     api.post<Competitor>("/competitors", data).then((r) => r.data),
   delete: (id: number) => api.delete(`/competitors/${id}`),
+};
+
+export const opportunityStageApi = {
+  list: () => api.get<OpportunityStage[]>("/opportunity-stages").then((r) => r.data),
+  get: (id: number) => api.get<OpportunityStage>(`/opportunity-stages/${id}`).then((r) => r.data),
+  create: (data: Partial<OpportunityStage>) =>
+    api.post<OpportunityStage>("/opportunity-stages", data).then((r) => r.data),
+  update: (id: number, data: Partial<OpportunityStage>) =>
+    api.put<OpportunityStage>(`/opportunity-stages/${id}`, data).then((r) => r.data),
+  delete: (id: number) => api.delete(`/opportunity-stages/${id}`),
+};
+
+export const opportunityTypeApi = {
+  list: () => api.get<OpportunityType[]>("/opportunity-types").then((r) => r.data),
+  get: (id: number) => api.get<OpportunityType>(`/opportunity-types/${id}`).then((r) => r.data),
+  create: (data: Partial<OpportunityType>) =>
+    api.post<OpportunityType>("/opportunity-types", data).then((r) => r.data),
+  update: (id: number, data: Partial<OpportunityType>) =>
+    api.put<OpportunityType>(`/opportunity-types/${id}`, data).then((r) => r.data),
+  delete: (id: number) => api.delete(`/opportunity-types/${id}`),
 };
 
 export const noteApi = {

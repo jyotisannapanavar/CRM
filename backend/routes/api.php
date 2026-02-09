@@ -18,6 +18,8 @@ use App\Http\Controllers\Api\StatusController;
 use App\Http\Controllers\Api\RequestTypeController;
 use App\Http\Controllers\Api\IndustryTypeController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\OpportunityStageController;
+use App\Http\Controllers\Api\OpportunityTypeController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -60,6 +62,8 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('statuses', StatusController::class);
     Route::apiResource('request-types', RequestTypeController::class);
     Route::apiResource('industry-types', IndustryTypeController::class);
+    Route::apiResource('opportunity-stages', OpportunityStageController::class);
+    Route::apiResource('opportunity-types', OpportunityTypeController::class);
     Route::apiResource('lost-reasons', OpportunityLostReasonController::class)->only(['index', 'store', 'destroy']);
     Route::apiResource('competitors', CompetitorController::class)->only(['index', 'store', 'destroy']);
 

@@ -19,6 +19,8 @@ import SettingsPage from "./pages/SettingsPage";
 import StatusList from "./pages/StatusList";
 import RequestTypeList from "./pages/RequestTypeList";
 import IndustryTypeList from "./pages/IndustryTypeList";
+import OpportunityStageList from "./pages/OpportunityStageList";
+import OpportunityTypeList from "./pages/OpportunityTypeList";
 
 export default function App() {
   return (
@@ -50,6 +52,8 @@ export default function App() {
         <Route path="/statuses" element={<StatusList />} />
         <Route path="/request-types" element={<RequestTypeList />} />
         <Route path="/industry-types" element={<IndustryTypeList />} />
+        <Route path="/opportunity-stages" element={<OpportunityStageList />} />
+        <Route path="/opportunity-types" element={<OpportunityTypeList />} />
       </Route>
     </Routes>
   );
