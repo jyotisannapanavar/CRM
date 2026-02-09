@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\OpportunityController;
 use App\Http\Controllers\Api\OpportunityLostReasonController;
 use App\Http\Controllers\Api\ProspectController;
 use App\Http\Controllers\Api\SalesStageController;
+use App\Http\Controllers\Api\SourceController;
 use App\Http\Controllers\Api\StatusController;
 use App\Http\Controllers\Api\RequestTypeController;
 use Illuminate\Support\Facades\Route;
@@ -37,6 +38,8 @@ Route::prefix('v1')->group(function () {
     Route::post('email-campaigns', [CampaignController::class, 'storeEmailCampaign']);
     Route::put('email-campaigns/{id}', [CampaignController::class, 'updateEmailCampaign']);
     Route::delete('email-campaigns/{id}', [CampaignController::class, 'destroyEmailCampaign']);
+
+    Route::apiResource('sources', SourceController::class);
 
     Route::apiResource('contracts', ContractController::class);
     Route::post('contracts/{id}/sign', [ContractController::class, 'sign']);
