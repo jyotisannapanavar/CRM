@@ -14,6 +14,8 @@ import ContractForm from "./pages/ContractForm";
 import AppointmentList from "./pages/AppointmentList";
 import AppointmentForm from "./pages/AppointmentForm";
 import SettingsPage from "./pages/SettingsPage";
+import StatusList from "./pages/StatusList";
+import RequestTypeList from "./pages/RequestTypeList";
 
 export default function App() {
   return (
@@ -39,6 +41,8 @@ export default function App() {
         <Route path="/appointments/new" element={<AppointmentForm />} />
         <Route path="/appointments/:id/edit" element={<AppointmentForm />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/statuses" element={<StatusList />} />
+        <Route path="/request-types" element={<RequestTypeList />} />
       </Route>
     </Routes>
   );

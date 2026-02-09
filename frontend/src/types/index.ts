@@ -180,6 +180,20 @@ export interface SalesStage {
   description: string | null;
 }
 
+export interface Status {
+  id: number;
+  status_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RequestType {
+  id: number;
+  name: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface OpportunityLostReason {
   id: number;
   reason: string;

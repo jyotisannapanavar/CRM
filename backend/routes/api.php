@@ -12,6 +12,8 @@ use App\Http\Controllers\Api\OpportunityController;
 use App\Http\Controllers\Api\OpportunityLostReasonController;
 use App\Http\Controllers\Api\ProspectController;
 use App\Http\Controllers\Api\SalesStageController;
+use App\Http\Controllers\Api\StatusController;
+use App\Http\Controllers\Api\RequestTypeController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -46,6 +48,8 @@ Route::prefix('v1')->group(function () {
     Route::delete('notes/{id}', [CrmNoteController::class, 'destroy']);
 
     Route::apiResource('sales-stages', SalesStageController::class);
+    Route::apiResource('statuses', StatusController::class);
+    Route::apiResource('request-types', RequestTypeController::class);
     Route::apiResource('lost-reasons', OpportunityLostReasonController::class)->only(['index', 'store', 'destroy']);
     Route::apiResource('competitors', CompetitorController::class)->only(['index', 'store', 'destroy']);
 

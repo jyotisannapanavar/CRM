@@ -7,6 +7,8 @@ import type {
   Contract,
   Appointment,
   SalesStage,
+  Status,
+  RequestType,
   OpportunityLostReason,
   Competitor,
   CrmNote,
@@ -108,6 +110,26 @@ export const salesStageApi = {
   update: (id: number, data: Partial<SalesStage>) =>
     api.put<SalesStage>(`/sales-stages/${id}`, data).then((r) => r.data),
   delete: (id: number) => api.delete(`/sales-stages/${id}`),
+};
+
+export const statusApi = {
+  list: () => api.get<Status[]>("/statuses").then((r) => r.data),
+  get: (id: number) => api.get<Status>(`/statuses/${id}`).then((r) => r.data),
+  create: (data: Partial<Status>) =>
+    api.post<Status>("/statuses", data).then((r) => r.data),
+  update: (id: number, data: Partial<Status>) =>
+    api.put<Status>(`/statuses/${id}`, data).then((r) => r.data),
+  delete: (id: number) => api.delete(`/statuses/${id}`),
+};
+
+export const requestTypeApi = {
+  list: () => api.get<RequestType[]>("/request-types").then((r) => r.data),
+  get: (id: number) => api.get<RequestType>(`/request-types/${id}`).then((r) => r.data),
+  create: (data: Partial<RequestType>) =>
+    api.post<RequestType>("/request-types", data).then((r) => r.data),
+  update: (id: number, data: Partial<RequestType>) =>
+    api.put<RequestType>(`/request-types/${id}`, data).then((r) => r.data),
+  delete: (id: number) => api.delete(`/request-types/${id}`),
 };
 
 export const lostReasonApi = {
