@@ -64,6 +64,9 @@ export default function LeadForm() {
           mobile_no: lead.mobile_no || "",
           website: lead.website || "",
           whatsapp_no: lead.whatsapp_no || "",
+          city: lead.city || "",
+          state: lead.state || "",
+          country: lead.country || "",
           company_name: lead.company_name || "",
           annual_revenue: lead.annual_revenue?.toString() || "",
           no_of_employees: lead.no_of_employees || "",
@@ -211,6 +214,25 @@ export default function LeadForm() {
             <div className="col-md-4">
               <label className="form-label">Website</label>
               <input className="form-control" value={form.website?.toString() || ""} onChange={(e) => setField("website", e.target.value)} />
+            </div>
+          </div>
+        </div>
+
+        {/* Location */}
+        <div className="form-container mb-4">
+          <h5 className="mb-3 border-bottom pb-2">Location</h5>
+          <div className="row g-3">
+            <div className="col-md-4">
+              <label className="form-label">City</label>
+              <input className="form-control" value={form.city?.toString() || ""} onChange={(e) => setField("city", e.target.value)} />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label">State</label>
+              <input className="form-control" value={form.state?.toString() || ""} onChange={(e) => setField("state", e.target.value)} />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label">Country</label>
+              <input className="form-control" value={form.country?.toString() || ""} onChange={(e) => setField("country", e.target.value)} />
             </div>
           </div>
         </div>

@@ -31,6 +31,12 @@ return new class extends Migration
             $table->string('mobile_no')->nullable();
             $table->string('website')->nullable();
             $table->string('whatsapp_no')->nullable();
+
+             
+            // Location
+            $table->string('city')->nullable();
+            $table->string('state')->nullable();
+            $table->string('country')->nullable();
             
             // Company Information
             $table->string('company_name')->nullable();
