@@ -3,6 +3,8 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import { leadApi, statusApi, sourceApi, requestTypeApi, industryTypeApi, enumApi, userApi, EnumOption, User } from "@/services/api";
 import type { Status, Source, RequestType, IndustryType } from "@/types";
 import Swal from "sweetalert2";
+import Skeleton from "@/components/ui/skeleton";
+import { ArrowLeft } from "lucide-react";
 
 const SALUTATIONS = ["Mr.", "Mrs.", "Ms.", "Dr.", "Prof."];
 const EMPLOYEE_RANGES = ["1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"];
@@ -13,7 +15,7 @@ export default function LeadForm() {
   const isEdit = Boolean(id);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState<Record<string, string | number | null>>({});
-  
+
   // Dropdown options
   const [statuses, setStatuses] = useState<Status[]>([]);
   const [sources, setSources] = useState<Source[]>([]);
@@ -109,7 +111,59 @@ export default function LeadForm() {
     }
   };
 
-  if (loading) return <div className="text-center py-5 text-muted">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="animate-pulse">
+        <nav aria-label="breadcrumb">
+          <ol className="breadcrumb">
+            <li className="breadcrumb-item"><Skeleton className="d-inline-block" style={{ width: '40px', height: '20px' }} /></li>
+            <li className="breadcrumb-item"><Skeleton className="d-inline-block" style={{ width: '50px', height: '20px' }} /></li>
+            <li className="breadcrumb-item active"><Skeleton className="d-inline-block" style={{ width: '30px', height: '20px' }} /></li>
+          </ol>
+        </nav>
+        <h2 className="mb-4"><Skeleton style={{ width: '200px', height: '32px' }} /></h2>
+
+        {/* Personal Information Skeleton */}
+        <div className="form-container mb-4">
+          <h5 className="mb-3 border-bottom pb-2"><Skeleton style={{ width: '180px', height: '24px' }} /></h5>
+          <div className="row g-3">
+            {[...Array(7)].map((_, i) => (
+              <div key={i} className={`col-md-${i === 0 || i === 1 || i === 3 ? '2' : i === 2 || i === 4 ? '3' : '4'}`}>
+                <label className="form-label"><Skeleton style={{ width: '80px', height: '20px' }} /></label>
+                <Skeleton className="form-control" style={{ height: '38px' }} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Lead Details Skeleton */}
+        <div className="form-container mb-4">
+          <h5 className="mb-3 border-bottom pb-2"><Skeleton style={{ width: '120px', height: '24px' }} /></h5>
+          <div className="row g-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="col-md-4">
+                <label className="form-label"><Skeleton style={{ width: '60px', height: '20px' }} /></label>
+                <Skeleton className="form-select" style={{ height: '38px' }} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Contact Information Skeleton */}
+        <div className="form-container mb-4">
+          <h5 className="mb-3 border-bottom pb-2"><Skeleton style={{ width: '160px', height: '24px' }} /></h5>
+          <div className="row g-3">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="col-md-4">
+                <label className="form-label"><Skeleton style={{ width: '70px', height: '20px' }} /></label>
+                <Skeleton className="form-control" style={{ height: '38px' }} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -120,7 +174,12 @@ export default function LeadForm() {
           <li className="breadcrumb-item active">{isEdit ? "Edit" : "New"}</li>
         </ol>
       </nav>
-      <h2 className="mb-4">{isEdit ? "Edit Lead" : "New Lead"}</h2>
+      <div className="d-flex align-items-center mb-4">
+        <Link to="/leads" className="btn btn-outline-secondary me-3" title="Back to Leads">
+          <ArrowLeft size={20} />
+        </Link>
+        <h2 className="mb-0">{isEdit ? "Edit Lead" : "New Lead"}</h2>
+      </div>
       <form onSubmit={handleSubmit}>
         {/* Personal Information */}
         <div className="form-container mb-4">
