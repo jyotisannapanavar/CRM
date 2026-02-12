@@ -19,6 +19,7 @@ import type {
   CrmSetting,
   DashboardStats,
   PaginatedResponse,
+  Territory,
 } from "../types";
 
 const api = axios.create({
@@ -222,6 +223,17 @@ export interface EnumOption {
 export const enumApi = {
   qualificationStatuses: () => api.get<EnumOption[]>("/enums/qualification-statuses").then((r) => r.data),
   genders: () => api.get<EnumOption[]>("/enums/genders").then((r) => r.data),
+};
+
+export const territoryApi = {
+  list: (params?: Record<string, string | number>) =>
+    api.get<Territory[]>("/territories", { params }).then((r) => r.data),
+  get: (id: number) => api.get<Territory>(`/territories/${id}`).then((r) => r.data),
+  create: (data: Partial<Territory>) =>
+    api.post<Territory>("/territories", data).then((r) => r.data),
+  update: (id: number, data: Partial<Territory>) =>
+    api.put<Territory>(`/territories/${id}`, data).then((r) => r.data),
+  delete: (id: number) => api.delete(`/territories/${id}`),
 };
 
 export default api;

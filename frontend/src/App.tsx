@@ -21,6 +21,7 @@ import RequestTypeList from "./pages/RequestTypeList";
 import IndustryTypeList from "./pages/IndustryTypeList";
 import OpportunityStageList from "./pages/OpportunityStageList";
 import OpportunityTypeList from "./pages/OpportunityTypeList";
+import TerritoryList from "./pages/TerritoryList";
 
 export default function App() {
   return (
@@ -54,6 +55,7 @@ export default function App() {
         <Route path="/industry-types" element={<IndustryTypeList />} />
         <Route path="/opportunity-stages" element={<OpportunityStageList />} />
         <Route path="/opportunity-types" element={<OpportunityTypeList />} />
+        <Route path="/territories" element={<TerritoryList />} />
       </Route>
     </Routes>
   );

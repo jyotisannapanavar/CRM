@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\IndustryTypeController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\OpportunityStageController;
 use App\Http\Controllers\Api\OpportunityTypeController;
+use App\Http\Controllers\Api\TerritoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -66,6 +67,7 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('opportunity-types', OpportunityTypeController::class);
     Route::apiResource('lost-reasons', OpportunityLostReasonController::class)->only(['index', 'store', 'destroy']);
     Route::apiResource('competitors', CompetitorController::class)->only(['index', 'store', 'destroy']);
+    Route::apiResource('territories', TerritoryController::class);
 
     // Enum routes
     Route::get('enums/qualification-statuses', [EnumController::class, 'qualificationStatuses']);
