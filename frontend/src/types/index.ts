@@ -275,6 +275,15 @@ export interface DashboardStats {
   };
 }
 
+export interface Territory {
+  id: number;
+  territory_name: string;
+  territory_manager: number | null;
+  manager: { id: number; name: string; email: string } | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface PaginatedResponse<T> {
   current_page: number;
   data: T[];
