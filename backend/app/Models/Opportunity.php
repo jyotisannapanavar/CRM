@@ -18,6 +18,7 @@ class Opportunity extends Model
         'opportunity_type_id',
         'opportunity_stage_id',
         'opportunity_from',
+        'lead_id',
         'source_id',
         'expected_closing',
         'party_name',
@@ -43,7 +44,7 @@ class Opportunity extends Model
         'expected_closing' => 'date',
     ];
 
-    protected $with = ['opportunityType', 'opportunityStage', 'source', 'status', 'industry', 'owner'];
+    protected $with = ['opportunityType', 'opportunityStage', 'source', 'status', 'industry', 'owner', 'lead'];
 
     public function opportunityType(): BelongsTo
     {
@@ -58,6 +59,11 @@ class Opportunity extends Model
     public function source(): BelongsTo
     {
         return $this->belongsTo(Source::class);
+    }
+
+    public function lead(): BelongsTo
+    {
+        return $this->belongsTo(Lead::class);
     }
 
     public function status(): BelongsTo

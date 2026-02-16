@@ -17,7 +17,8 @@ return new class extends Migration
             $table->foreignId('opportunity_stage_id')->nullable()->constrained('opportunity_stages')->nullOnDelete();
             
             // Opportunity Details
-            $table->string('opportunity_from')->nullable(); // Lead, Customer, etc.
+            $table->enum('opportunity_from', ['lead', 'customer', 'prospect'])->nullable();
+            $table->foreignId('lead_id')->nullable()->constrained('leads')->nullOnDelete();
             $table->foreignId('source_id')->nullable()->constrained('sources')->nullOnDelete();
             $table->date('expected_closing')->nullable();
             $table->string('party_name')->nullable();
