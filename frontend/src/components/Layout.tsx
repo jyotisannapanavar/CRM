@@ -1,8 +1,9 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { LayoutDashboard, Users, Target, Building2, Megaphone, Globe, CalendarClock, Settings, MapPin, UserCircle } from "lucide-react";
+import { LayoutDashboard, Users, Target, Building2, Megaphone, Globe, CalendarClock, Settings, MapPin, UserCircle, Briefcase } from "lucide-react";
 
 const links = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/customers", label: "Customers", icon: Briefcase },
   { to: "/leads", label: "Leads", icon: Users },
   { to: "/opportunities", label: "Opportunities", icon: Target },
   { to: "/prospects", label: "Prospects", icon: Building2 },

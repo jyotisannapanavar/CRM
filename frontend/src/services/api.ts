@@ -21,6 +21,11 @@ import type {
   PaginatedResponse,
   Territory,
   Contact,
+  Customer,
+  CustomerGroup,
+  PriceList,
+  PaymentTerm,
+  EnumOption,
 } from "../types";
 
 const api = axios.create({
@@ -216,14 +221,20 @@ export const settingsApi = {
     api.put<CrmSetting>("/settings", data).then((r) => r.data),
 };
 
-export interface EnumOption {
-  value: string;
-  label: string;
-}
-
 export const enumApi = {
   qualificationStatuses: () => api.get<EnumOption[]>("/enums/qualification-statuses").then((r) => r.data),
   genders: () => api.get<EnumOption[]>("/enums/genders").then((r) => r.data),
+};
+
+export const contactApi = {
+  list: (params?: Record<string, string | number>) =>
+    api.get<PaginatedResponse<Contact>>("/contacts", { params }).then((r) => r.data),
+  get: (id: number) => api.get<Contact>(`/contacts/${id}`).then((r) => r.data),
+  create: (data: Partial<Contact>) =>
+    api.post<Contact>("/contacts", data).then((r) => r.data),
+  update: (id: number, data: Partial<Contact>) =>
+    api.put<Contact>(`/contacts/${id}`, data).then((r) => r.data),
+  delete: (id: number) => api.delete(`/contacts/${id}`),
 };
 
 export const territoryApi = {
@@ -237,15 +248,42 @@ export const territoryApi = {
   delete: (id: number) => api.delete(`/territories/${id}`),
 };
 
-export const contactApi = {
+export const customerApi = {
   list: (params?: Record<string, string | number>) =>
-    api.get<PaginatedResponse<Contact>>("/contacts", { params }).then((r) => r.data),
-  get: (id: number) => api.get<Contact>(`/contacts/${id}`).then((r) => r.data),
-  create: (data: Partial<Contact>) =>
-    api.post<Contact>("/contacts", data).then((r) => r.data),
-  update: (id: number, data: Partial<Contact>) =>
-    api.put<Contact>(`/contacts/${id}`, data).then((r) => r.data),
-  delete: (id: number) => api.delete(`/contacts/${id}`),
+    api.get<PaginatedResponse<Customer>>("/customers", { params }).then((r) => r.data),
+  get: (id: number) => api.get<Customer>(`/customers/${id}`).then((r) => r.data),
+  create: (data: Partial<Customer>) =>
+    api.post<Customer>("/customers", data).then((r) => r.data),
+  update: (id: number, data: Partial<Customer>) =>
+    api.put<Customer>(`/customers/${id}`, data).then((r) => r.data),
+  delete: (id: number) => api.delete(`/customers/${id}`),
+};
+
+export const customerGroupApi = {
+  list: () => api.get<CustomerGroup[]>("/customer-groups").then((r) => r.data),
+  create: (data: Partial<CustomerGroup>) =>
+    api.post<CustomerGroup>("/customer-groups", data).then((r) => r.data),
+  update: (id: number, data: Partial<CustomerGroup>) =>
+    api.put<CustomerGroup>(`/customer-groups/${id}`, data).then((r) => r.data),
+  delete: (id: number) => api.delete(`/customer-groups/${id}`),
+};
+
+export const priceListApi = {
+  list: () => api.get<PriceList[]>("/price-lists").then((r) => r.data),
+  create: (data: Partial<PriceList>) =>
+    api.post<PriceList>("/price-lists", data).then((r) => r.data),
+  update: (id: number, data: Partial<PriceList>) =>
+    api.put<PriceList>(`/price-lists/${id}`, data).then((r) => r.data),
+  delete: (id: number) => api.delete(`/price-lists/${id}`),
+};
+
+export const paymentTermApi = {
+  list: () => api.get<PaymentTerm[]>("/payment-terms").then((r) => r.data),
+  create: (data: Partial<PaymentTerm>) =>
+    api.post<PaymentTerm>("/payment-terms", data).then((r) => r.data),
+  update: (id: number, data: Partial<PaymentTerm>) =>
+    api.put<PaymentTerm>(`/payment-terms/${id}`, data).then((r) => r.data),
+  delete: (id: number) => api.delete(`/payment-terms/${id}`),
 };
 
 export default api;
