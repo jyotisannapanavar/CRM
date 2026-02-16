@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
-import { opportunityApi, salesStageApi } from "@/services/api";
-import type { Opportunity, SalesStage } from "@/types";
+import { opportunityApi, salesStageApi, leadApi } from "@/services/api";
+import type { Lead, Opportunity, SalesStage } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -20,6 +20,7 @@ const statusVariant = (s: string) => {
 export default function OpportunitiesPage() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [stages, setStages] = useState<SalesStage[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -35,23 +36,26 @@ export default function OpportunitiesPage() {
     Promise.all([
       opportunityApi.list(params),
       stages.length === 0 ? salesStageApi.list() : Promise.resolve(stages),
-    ]).then(([oppRes, stagesRes]) => {
+      leads.length === 0 ? leadApi.list() : Promise.resolve(leads),
+    ]).then(([oppRes, stagesRes, leadsRes]) => {
       setOpportunities(Array.isArray(oppRes) ? oppRes : oppRes.data || []);
       if (Array.isArray(stagesRes)) setStages(stagesRes);
+      const leadsData = Array.isArray(leadsRes) ? leadsRes : (leadsRes as any)?.data || [];
+      if (leadsData.length > 0) setLeads(leadsData);
     }).finally(() => setLoading(false));
-  }, [search, statusFilter, stages.length]);
+  }, [search, statusFilter, stages.length, leads.length]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ opportunity_from: "Lead", status: "Open", party_id: "0" });
+    setForm({ opportunity_from: "lead", status: "Open", party_id: "0" });
     setDialogOpen(true);
   };
   const openEdit = (opp: Opportunity) => {
     setEditing(opp);
     setForm({
-      opportunity_from: opp.opportunity_from || "Lead",
+      opportunity_from: opp.opportunity_from || "lead",
       party_id: String(opp.party_id),
       customer_name: opp.customer_name || "",
       status: opp.status || "Open",
@@ -66,7 +70,7 @@ export default function OpportunitiesPage() {
   };
 
   const handleSave = async () => {
-    const data = { ...form, party_id: Number(form.party_id), sales_stage_id: form.sales_stage_id ? Number(form.sales_stage_id) : undefined, opportunity_amount: form.opportunity_amount ? Number(form.opportunity_amount) : undefined, probability: form.probability ? Number(form.probability) : undefined };
+    const data = { ...form, party_id: Number(form.party_id), sales_stage_id: form.sales_stage_id ? Number(form.sales_stage_id) : undefined, opportunity_amount: form.opportunity_amount ? Number(form.opportunity_amount) : undefined, probability: form.probability ? Number(form.probability) : undefined, lead_id: form.opportunity_from === "lead" && form.lead_id ? Number(form.lead_id) : null };
     if (editing) {
       await opportunityApi.update(editing.id, data);
     } else {
@@ -114,6 +118,7 @@ export default function OpportunitiesPage() {
               <TableRow>
                 <TableHead>Customer</TableHead>
                 <TableHead>From</TableHead>
+                <TableHead>Lead</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Stage</TableHead>
                 <TableHead>Amount</TableHead>
@@ -125,7 +130,8 @@ export default function OpportunitiesPage() {
               {opportunities.map((opp) => (
                 <TableRow key={opp.id}>
                   <TableCell className="font-medium">{opp.customer_name || `#${opp.party_id}`}</TableCell>
-                  <TableCell>{opp.opportunity_from}</TableCell>
+                  <TableCell>{opp.opportunity_from ? opp.opportunity_from.charAt(0).toUpperCase() + opp.opportunity_from.slice(1) : "-"}</TableCell>
+                  <TableCell>{opp.lead ? `${opp.lead.first_name} ${opp.lead.last_name || ""}`.trim() : "-"}</TableCell>
                   <TableCell><Badge variant={statusVariant(opp.status)}>{opp.status}</Badge></TableCell>
                   <TableCell>{opp.sales_stage?.stage_name || "-"}</TableCell>
                   <TableCell>{opp.opportunity_amount ? `$${Number(opp.opportunity_amount).toLocaleString()}` : "-"}</TableCell>
@@ -145,12 +151,21 @@ export default function OpportunitiesPage() {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-xs font-medium text-gray-600">From</label>
-            <Select value={form.opportunity_from || "Lead"} onChange={(e) => setField("opportunity_from", e.target.value)}>
-              <option value="Lead">Lead</option>
-              <option value="Prospect">Prospect</option>
-              <option value="Customer">Customer</option>
+            <Select value={form.opportunity_from || "lead"} onChange={(e) => { setField("opportunity_from", e.target.value); if (e.target.value !== "lead") setField("lead_id", ""); }}>
+              <option value="lead">Lead</option>
+              <option value="prospect">Prospect</option>
+              <option value="customer">Customer</option>
             </Select>
           </div>
+          {form.opportunity_from === "lead" && (
+            <div>
+              <label className="text-xs font-medium text-gray-600">Lead</label>
+              <Select value={form.lead_id || ""} onChange={(e) => setField("lead_id", e.target.value)}>
+                <option value="">Select Lead</option>
+                {leads.map((l) => <option key={l.id} value={l.id}>{l.first_name} {l.last_name || ""} {l.company_name ? `(${l.company_name})` : ""}</option>)}
+              </Select>
+            </div>
+          )}
           <div>
             <label className="text-xs font-medium text-gray-600">Party ID</label>
             <Input type="number" value={form.party_id || ""} onChange={(e) => setField("party_id", e.target.value)} />

@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { opportunityApi, statusApi, sourceApi, industryTypeApi, opportunityTypeApi, opportunityStageApi, userApi, User } from "@/services/api";
-import type { Status, Source, IndustryType, OpportunityType, OpportunityStage } from "@/types";
+import { opportunityApi, statusApi, sourceApi, industryTypeApi, opportunityTypeApi, opportunityStageApi, userApi, leadApi, User } from "@/services/api";
+import type { Lead, Status, Source, IndustryType, OpportunityType, OpportunityStage } from "@/types";
 import Swal from "sweetalert2";
 
-const OPPORTUNITY_FROM_OPTIONS = ["Lead", "Customer", "Prospect"];
+const OPPORTUNITY_FROM_OPTIONS = ["lead", "customer", "prospect"];
 const EMPLOYEE_RANGES = ["1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"];
 
 export default function OpportunityForm() {
@@ -21,6 +21,7 @@ export default function OpportunityForm() {
   const [opportunityTypes, setOpportunityTypes] = useState<OpportunityType[]>([]);
   const [opportunityStages, setOpportunityStages] = useState<OpportunityStage[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
 
   useEffect(() => {
     Promise.all([
@@ -30,13 +31,16 @@ export default function OpportunityForm() {
       opportunityTypeApi.list(),
       opportunityStageApi.list(),
       userApi.list(),
-    ]).then(([statusRes, sourceRes, industryRes, typeRes, stageRes, usersRes]) => {
+      leadApi.list(),
+    ]).then(([statusRes, sourceRes, industryRes, typeRes, stageRes, usersRes, leadsRes]) => {
       setStatuses(Array.isArray(statusRes) ? statusRes : []);
       setSources(Array.isArray(sourceRes) ? sourceRes : []);
       setIndustries(Array.isArray(industryRes) ? industryRes : []);
       setOpportunityTypes(Array.isArray(typeRes) ? typeRes : []);
       setOpportunityStages(Array.isArray(stageRes) ? stageRes : []);
       setUsers(Array.isArray(usersRes) ? usersRes : []);
+      const leadsData = Array.isArray(leadsRes) ? leadsRes : (leadsRes as any)?.data || [];
+      setLeads(leadsData);
     });
   }, []);
 
@@ -49,6 +53,7 @@ export default function OpportunityForm() {
           opportunity_type_id: item.opportunity_type_id || "",
           opportunity_stage_id: item.opportunity_stage_id || "",
           opportunity_from: item.opportunity_from || "",
+          lead_id: item.lead_id || "",
           source_id: item.source_id || "",
           expected_closing: item.expected_closing ? item.expected_closing.split('T')[0] : "",
           party_name: item.party_name || "",
@@ -77,7 +82,7 @@ export default function OpportunityForm() {
     try {
       const payload = { ...form };
       // Convert empty strings to null for foreign keys
-      ['opportunity_type_id', 'opportunity_stage_id', 'source_id', 'opportunity_owner', 'status_id', 'industry_id'].forEach(key => {
+      ['opportunity_type_id', 'opportunity_stage_id', 'source_id', 'opportunity_owner', 'status_id', 'industry_id', 'lead_id'].forEach(key => {
         if (payload[key] === '' || payload[key] === null) {
           payload[key] = null;
         }
@@ -144,11 +149,20 @@ export default function OpportunityForm() {
             </div>
             <div className="col-md-3">
               <label className="form-label">Opportunity From</label>
-              <select className="form-select" value={form.opportunity_from?.toString() || ""} onChange={(e) => setField("opportunity_from", e.target.value)}>
+              <select className="form-select" value={form.opportunity_from?.toString() || ""} onChange={(e) => { setField("opportunity_from", e.target.value); if (e.target.value !== "lead") setField("lead_id", ""); }}>
                 <option value="">Select</option>
-                {OPPORTUNITY_FROM_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+                {OPPORTUNITY_FROM_OPTIONS.map((o) => <option key={o} value={o}>{o.charAt(0).toUpperCase() + o.slice(1)}</option>)}
               </select>
             </div>
+            {form.opportunity_from === "lead" && (
+              <div className="col-md-3">
+                <label className="form-label">Lead</label>
+                <select className="form-select" value={form.lead_id?.toString() || ""} onChange={(e) => setField("lead_id", e.target.value)}>
+                  <option value="">Select Lead</option>
+                  {leads.map((l) => <option key={l.id} value={l.id}>{l.first_name} {l.last_name || ""} {l.company_name ? `(${l.company_name})` : ""}</option>)}
+                </select>
+              </div>
+            )}
             <div className="col-md-3">
               <label className="form-label">Source</label>
               <select className="form-select" value={form.source_id?.toString() || ""} onChange={(e) => setField("source_id", e.target.value)}>

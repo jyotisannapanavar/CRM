@@ -40,7 +40,9 @@ export interface Opportunity {
   opportunity_type: OpportunityType | null;
   opportunity_stage_id: number | null;
   opportunity_stage: OpportunityStage | null;
-  opportunity_from: string | null;
+  opportunity_from: 'lead' | 'customer' | 'prospect' | null;
+  lead_id: number | null;
+  lead: Lead | null;
   source_id: number | null;
   source: Source | null;
   expected_closing: string | null;
