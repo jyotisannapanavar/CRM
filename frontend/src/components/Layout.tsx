@@ -1,15 +1,15 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { LayoutDashboard, Users, Target, Building2, Megaphone, Globe, FileText, CalendarClock, Settings, MapPin } from "lucide-react";
+import { LayoutDashboard, Users, Target, Building2, Megaphone, Globe, CalendarClock, Settings, MapPin, UserCircle } from "lucide-react";
 
 const links = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/leads", label: "Leads", icon: Users },
   { to: "/opportunities", label: "Opportunities", icon: Target },
   { to: "/prospects", label: "Prospects", icon: Building2 },
+  { to: "/contacts", label: "Contacts", icon: UserCircle },
   { to: "/campaigns", label: "Campaigns", icon: Megaphone },
   { to: "/sources", label: "Sources", icon: Globe },
   { to: "/territories", label: "Territories", icon: MapPin },
-  { to: "/contracts", label: "Contracts", icon: FileText },
   { to: "/appointments", label: "Appointments", icon: CalendarClock },
   { to: "/settings", label: "Settings", icon: Settings },
 ];

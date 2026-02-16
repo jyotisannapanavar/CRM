@@ -284,6 +284,42 @@ export interface Territory {
   updated_at: string;
 }
 
+export interface ContactPhone {
+  id?: number;
+  contact_id?: number;
+  phone_no: string | null;
+  is_primary: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ContactEmail {
+  id?: number;
+  contact_id?: number;
+  email: string | null;
+  is_primary: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Contact {
+  id: number;
+  salutation: string | null;
+  first_name: string;
+  middle_name: string | null;
+  last_name: string | null;
+  designation: string | null;
+  gender: string | null;
+  company_name: string | null;
+  address: string | null;
+  status: string;
+  full_name: string;
+  phones: ContactPhone[];
+  emails: ContactEmail[];
+  created_at: string;
+  updated_at: string;
+}
+
 export interface PaginatedResponse<T> {
   current_page: number;
   data: T[];

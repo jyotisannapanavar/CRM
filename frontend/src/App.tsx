@@ -11,8 +11,7 @@ import CampaignList from "./pages/CampaignList";
 import CampaignForm from "./pages/CampaignForm";
 import SourceList from "./pages/SourceList";
 import SourceForm from "./pages/SourceForm";
-import ContractList from "./pages/ContractList";
-import ContractForm from "./pages/ContractForm";
+
 import AppointmentList from "./pages/AppointmentList";
 import AppointmentForm from "./pages/AppointmentForm";
 import SettingsPage from "./pages/SettingsPage";
@@ -22,6 +21,8 @@ import IndustryTypeList from "./pages/IndustryTypeList";
 import OpportunityStageList from "./pages/OpportunityStageList";
 import OpportunityTypeList from "./pages/OpportunityTypeList";
 import TerritoryList from "./pages/TerritoryList";
+import ContactList from "./pages/ContactList";
+import ContactForm from "./pages/ContactForm";
 
 export default function App() {
   return (
@@ -43,9 +44,7 @@ export default function App() {
         <Route path="/sources" element={<SourceList />} />
         <Route path="/sources/new" element={<SourceForm />} />
         <Route path="/sources/:id/edit" element={<SourceForm />} />
-        <Route path="/contracts" element={<ContractList />} />
-        <Route path="/contracts/new" element={<ContractForm />} />
-        <Route path="/contracts/:id/edit" element={<ContractForm />} />
+
         <Route path="/appointments" element={<AppointmentList />} />
         <Route path="/appointments/new" element={<AppointmentForm />} />
         <Route path="/appointments/:id/edit" element={<AppointmentForm />} />
@@ -56,6 +55,9 @@ export default function App() {
         <Route path="/opportunity-stages" element={<OpportunityStageList />} />
         <Route path="/opportunity-types" element={<OpportunityTypeList />} />
         <Route path="/territories" element={<TerritoryList />} />
+        <Route path="/contacts" element={<ContactList />} />
+        <Route path="/contacts/new" element={<ContactForm />} />
+        <Route path="/contacts/:id/edit" element={<ContactForm />} />
       </Route>
     </Routes>
   );
