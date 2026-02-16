@@ -16,6 +16,8 @@ export default function ProspectForm() {
       prospectApi.get(Number(id)).then((item) => {
         setForm({
           company_name: item.company_name || "",
+          status: item.status || "New",
+          source: item.source || "",
           industry: item.industry || "",
           market_segment: item.market_segment || "",
           customer_group: item.customer_group || "",
@@ -24,6 +26,13 @@ export default function ProspectForm() {
           annual_revenue: item.annual_revenue?.toString() || "",
           fax: item.fax || "",
           website: item.website || "",
+          email: item.email || "",
+          phone: item.phone || "",
+          address: item.address || "",
+          city: item.city || "",
+          state: item.state || "",
+          country: item.country || "",
+          zip_code: item.zip_code || "",
         });
       }).finally(() => setLoading(false));
     }
@@ -68,6 +77,36 @@ export default function ProspectForm() {
               <input className="form-control" value={form.company_name || ""} onChange={(e) => setField("company_name", e.target.value)} required />
             </div>
             <div className="col-md-4">
+              <label className="form-label">Status</label>
+              <select className="form-select" value={form.status || "New"} onChange={(e) => setField("status", e.target.value)}>
+                <option value="New">New</option>
+                <option value="Contacted">Contacted</option>
+                <option value="Qualified">Qualified</option>
+                <option value="Lost">Lost</option>
+                <option value="Converted">Converted</option>
+              </select>
+            </div>
+            <div className="col-md-4">
+              <label className="form-label">Source</label>
+              <select className="form-select" value={form.source || ""} onChange={(e) => setField("source", e.target.value)}>
+                <option value="">Select Source</option>
+                <option value="Campaign">Campaign</option>
+                <option value="Cold Call">Cold Call</option>
+                <option value="Conference">Conference</option>
+                <option value="Customer">Customer</option>
+                <option value="Email">Email</option>
+                <option value="Employee">Employee</option>
+                <option value="Existing Customer">Existing Customer</option>
+                <option value="Partner">Partner</option>
+                <option value="Public Relations">Public Relations</option>
+                <option value="Self Generated">Self Generated</option>
+                <option value="Trade Show">Trade Show</option>
+                <option value="Web">Web</option>
+                <option value="Word of Mouth">Word of Mouth</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div className="col-md-4">
               <label className="form-label">Industry</label>
               <input className="form-control" value={form.industry || ""} onChange={(e) => setField("industry", e.target.value)} />
             </div>
@@ -106,6 +145,46 @@ export default function ProspectForm() {
             <div className="col-md-4">
               <label className="form-label">Fax</label>
               <input className="form-control" value={form.fax || ""} onChange={(e) => setField("fax", e.target.value)} />
+            </div>
+          </div>
+        </div>
+
+        <div className="form-container mb-4">
+          <h5 className="mb-3 border-bottom pb-2">Contact Information</h5>
+          <div className="row g-3">
+            <div className="col-md-6">
+              <label className="form-label">Email Address</label>
+              <input type="email" className="form-control" value={form.email || ""} onChange={(e) => setField("email", e.target.value)} />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Phone / Mobile</label>
+              <input type="tel" className="form-control" value={form.phone || ""} onChange={(e) => setField("phone", e.target.value)} />
+            </div>
+          </div>
+        </div>
+
+        <div className="form-container mb-4">
+          <h5 className="mb-3 border-bottom pb-2">Address</h5>
+          <div className="row g-3">
+            <div className="col-12">
+              <label className="form-label">Address</label>
+              <textarea className="form-control" rows={3} value={form.address || ""} onChange={(e) => setField("address", e.target.value)}></textarea>
+            </div>
+            <div className="col-md-3">
+              <label className="form-label">City</label>
+              <input className="form-control" value={form.city || ""} onChange={(e) => setField("city", e.target.value)} />
+            </div>
+            <div className="col-md-3">
+              <label className="form-label">State</label>
+              <input className="form-control" value={form.state || ""} onChange={(e) => setField("state", e.target.value)} />
+            </div>
+            <div className="col-md-3">
+              <label className="form-label">Country</label>
+              <input className="form-control" value={form.country || ""} onChange={(e) => setField("country", e.target.value)} />
+            </div>
+            <div className="col-md-3">
+              <label className="form-label">Zip Code</label>
+              <input className="form-control" value={form.zip_code || ""} onChange={(e) => setField("zip_code", e.target.value)} />
             </div>
           </div>
         </div>

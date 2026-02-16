@@ -61,6 +61,7 @@ export default function ProspectList() {
             <thead className="table-light">
               <tr>
                 <th>Company Name</th>
+                <th>Status</th>
                 <th>Industry</th>
                 <th>Territory</th>
                 <th>Market Segment</th>
@@ -71,11 +72,14 @@ export default function ProspectList() {
             <tbody>
               {items.map((item) => (
                 <tr key={item.id}>
-                  <td className="fw-medium">{item.company_name}</td>
+                  <td className="fw-medium">
+                    <Link to={`/prospects/${item.id}/edit`} className="text-decoration-none text-dark">{item.company_name}</Link>
+                  </td>
+                  <td><span className={`badge bg-${item.status === 'New' ? 'info' : item.status === 'Converted' ? 'success' : 'secondary'}`}>{item.status || 'New'}</span></td>
                   <td>{item.industry || "-"}</td>
                   <td>{item.territory || "-"}</td>
                   <td>{item.market_segment || "-"}</td>
-                  <td>{item.annual_revenue ? `$${item.annual_revenue.toLocaleString()}` : "-"}</td>
+                  <td>{item.annual_revenue ? `₹ ${Number(item.annual_revenue).toLocaleString()}` : "-"}</td>
                   <td className="text-end">
                     <Link to={`/prospects/${item.id}/edit`} className="btn btn-sm btn-outline-secondary me-1"><Pencil size={14} /></Link>
                     <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(item.id)}><Trash2 size={14} /></button>
