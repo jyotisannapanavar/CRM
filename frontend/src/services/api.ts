@@ -20,6 +20,7 @@ import type {
   DashboardStats,
   PaginatedResponse,
   Territory,
+  Contact,
 } from "../types";
 
 const api = axios.create({
@@ -234,6 +235,17 @@ export const territoryApi = {
   update: (id: number, data: Partial<Territory>) =>
     api.put<Territory>(`/territories/${id}`, data).then((r) => r.data),
   delete: (id: number) => api.delete(`/territories/${id}`),
+};
+
+export const contactApi = {
+  list: (params?: Record<string, string | number>) =>
+    api.get<PaginatedResponse<Contact>>("/contacts", { params }).then((r) => r.data),
+  get: (id: number) => api.get<Contact>(`/contacts/${id}`).then((r) => r.data),
+  create: (data: Partial<Contact>) =>
+    api.post<Contact>("/contacts", data).then((r) => r.data),
+  update: (id: number, data: Partial<Contact>) =>
+    api.put<Contact>(`/contacts/${id}`, data).then((r) => r.data),
+  delete: (id: number) => api.delete(`/contacts/${id}`),
 };
 
 export default api;
