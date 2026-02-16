@@ -2,79 +2,10 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import { customerApi, customerGroupApi } from "@/services/api";
 import type { Customer, CustomerGroup } from "@/types";
-import { Plus, Pencil, Trash2, MoreVertical, Eye } from "lucide-react";
+import { Plus, Trash2, Edit2, Eye, Search, X } from "lucide-react";
 import Swal from "sweetalert2";
 
-interface CustomerActionsMenuProps {
-    customer: Customer;
-    onDelete: (id: number) => void;
-}
 
-function CustomerActionsMenu({ customer, onDelete }: CustomerActionsMenuProps) {
-    const [isOpen, setIsOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        }
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
-
-    return (
-        <div className="position-relative" ref={dropdownRef}>
-            <button
-                className="btn btn-link btn-sm p-0 text-muted"
-                onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setIsOpen(!isOpen);
-                }}
-                type="button"
-            >
-                <MoreVertical size={16} />
-            </button>
-
-            {isOpen && (
-                <div
-                    className="dropdown-menu show"
-                    style={{
-                        position: "absolute",
-                        right: 0,
-                        top: "100%",
-                        zIndex: 1000,
-                        display: 'block',
-                        minWidth: '160px'
-                    }}
-                >
-                    <Link
-                        className="dropdown-item d-flex align-items-center"
-                        to={`/customers/${customer.id}/edit`}
-                        onClick={() => setIsOpen(false)}
-                    >
-                        <Pencil size={14} className="me-2" /> Edit
-                    </Link>
-                    <button
-                        className="dropdown-item d-flex align-items-center text-danger"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            onDelete(customer.id);
-                            setIsOpen(false);
-                        }}
-                    >
-                        <Trash2 size={14} className="me-2" /> Delete
-                    </button>
-                </div>
-            )}
-        </div>
-    );
-}
 
 export default function CustomerList() {
     const [customers, setCustomers] = useState<Customer[]>([]);
@@ -99,6 +30,30 @@ export default function CustomerList() {
     }, []);
 
     useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
+
+    const viewCustomer = async (customer: Customer) => {
+        await Swal.fire({
+            title: customer.name,
+            width: 650,
+            html: `
+                <div style="text-align:left;">
+                    <table class="table table-borderless mb-0" style="font-size:0.9rem;">
+                        <tr><td class="fw-semibold" style="width:140px;">Type</td><td>${customer.customer_type || "—"}</td></tr>
+                        <tr><td class="fw-semibold">Group</td><td>${customer.customer_group?.name || "—"}</td></tr>
+                        <tr><td class="fw-semibold">Territory</td><td>${customer.territory?.territory_name || "—"}</td></tr>
+                        <tr><td class="fw-semibold">Email</td><td>${customer.email || "—"}</td></tr>
+                        <tr><td class="fw-semibold">Phone</td><td>${customer.phone || "—"}</td></tr>
+                        <tr><td class="fw-semibold">Website</td><td>${customer.website || "—"}</td></tr>
+                        <tr><td class="fw-semibold">Tax ID</td><td>${customer.tax_id || "—"}</td></tr>
+                        <tr><td class="fw-semibold">Billing Currency</td><td>${customer.billing_currency || "—"}</td></tr>
+                    </table>
+                     ${customer.customer_details ? `<div class="mt-3"><h6 class="fw-semibold border-bottom pb-1">Details</h6><p class="small text-muted">${customer.customer_details}</p></div>` : ''}
+                </div>
+            `,
+            confirmButtonText: "Close",
+            confirmButtonColor: "#6c757d",
+        });
+    };
 
     const handleDelete = async (id: number) => {
         const result = await Swal.fire({
@@ -130,7 +85,25 @@ export default function CustomerList() {
             </div>
             <div className="row g-2 mb-3">
                 <div className="col-md-4">
-                    <input type="text" className="form-control" placeholder="Search customers..." value={search} onChange={(e) => setSearch(e.target.value)} />
+                    <div className="position-relative">
+                        <Search size={16} className="position-absolute top-50 translate-middle-y ms-3 text-muted" />
+                        <input
+                            type="text"
+                            className="form-control ps-5"
+                            placeholder="Search customers..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                        {search && (
+                            <button
+                                className="btn btn-link position-absolute top-50 end-0 translate-middle-y text-muted"
+                                onClick={() => setSearch("")}
+                                style={{ textDecoration: "none" }}
+                            >
+                                <X size={16} />
+                            </button>
+                        )}
+                    </div>
                 </div>
                 <div className="col-md-3">
                     <select className="form-select" value={groupFilter} onChange={(e) => setGroupFilter(e.target.value)}>
@@ -175,7 +148,27 @@ export default function CustomerList() {
                                     <td>{customer.email || "-"}</td>
                                     <td>{customer.phone || "-"}</td>
                                     <td className="text-end">
-                                        <CustomerActionsMenu customer={customer} onDelete={handleDelete} />
+                                        <button
+                                            className="btn btn-sm btn-outline-secondary me-1"
+                                            onClick={() => viewCustomer(customer)}
+                                            title="View"
+                                        >
+                                            <Eye size={14} />
+                                        </button>
+                                        <Link
+                                            to={`/customers/${customer.id}/edit`}
+                                            className="btn btn-sm btn-outline-primary me-1"
+                                            title="Edit"
+                                        >
+                                            <Edit2 size={14} />
+                                        </Link>
+                                        <button
+                                            className="btn btn-sm btn-outline-danger"
+                                            onClick={() => handleDelete(customer.id)}
+                                            title="Delete"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
