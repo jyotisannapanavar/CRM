@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { prospectApi } from "@/services/api";
+import { prospectApi, statusApi, sourceApi, industryTypeApi, territoryApi, customerGroupApi } from "@/services/api";
+import type { Status, Source, IndustryType, Territory, CustomerGroup } from "@/types";
 import Swal from "sweetalert2";
 
 export default function ProspectForm() {
@@ -10,10 +11,33 @@ export default function ProspectForm() {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState<Record<string, string>>({});
 
+  const [statuses, setStatuses] = useState<Status[]>([]);
+  const [sources, setSources] = useState<Source[]>([]);
+  const [industries, setIndustries] = useState<IndustryType[]>([]);
+  const [territories, setTerritories] = useState<Territory[]>([]);
+  const [customerGroups, setCustomerGroups] = useState<CustomerGroup[]>([]);
+
+  useEffect(() => {
+    Promise.all([
+      statusApi.list(),
+      sourceApi.list(),
+      industryTypeApi.list(),
+      territoryApi.list(),
+      // customerGroupApi.list(),
+    ]).then(([statusRes, sourceRes, industryRes, territoryRes]) => {
+      setStatuses(Array.isArray(statusRes) ? statusRes : []);
+      setSources(Array.isArray(sourceRes) ? sourceRes : []);
+      setIndustries(Array.isArray(industryRes) ? industryRes : []);
+      setTerritories(Array.isArray(territoryRes) ? territoryRes : []);
+      // setCustomerGroups(Array.isArray(customerGroupRes) ? customerGroupRes : []);
+    });
+  }, []);
+
   useEffect(() => {
     if (id) {
       setLoading(true);
       prospectApi.get(Number(id)).then((item) => {
+        console.log("Prospect Data:", item); // Debugging
         setForm({
           company_name: item.company_name || "",
           status: item.status || "New",
@@ -56,7 +80,7 @@ export default function ProspectForm() {
     }
   };
 
-  if (loading) return <div className="text-center py-5 text-muted">Loading...</div>;
+  // if (loading) return <div className="text-center py-5 text-muted">Loading...</div>;
 
   return (
     <div>
@@ -80,35 +104,22 @@ export default function ProspectForm() {
               <label className="form-label">Status</label>
               <select className="form-select" value={form.status || "New"} onChange={(e) => setField("status", e.target.value)}>
                 <option value="New">New</option>
-                <option value="Contacted">Contacted</option>
-                <option value="Qualified">Qualified</option>
-                <option value="Lost">Lost</option>
-                <option value="Converted">Converted</option>
+                {statuses.map((s) => <option key={s.id} value={s.status_name}>{s.status_name}</option>)}
               </select>
             </div>
             <div className="col-md-4">
               <label className="form-label">Source</label>
               <select className="form-select" value={form.source || ""} onChange={(e) => setField("source", e.target.value)}>
                 <option value="">Select Source</option>
-                <option value="Campaign">Campaign</option>
-                <option value="Cold Call">Cold Call</option>
-                <option value="Conference">Conference</option>
-                <option value="Customer">Customer</option>
-                <option value="Email">Email</option>
-                <option value="Employee">Employee</option>
-                <option value="Existing Customer">Existing Customer</option>
-                <option value="Partner">Partner</option>
-                <option value="Public Relations">Public Relations</option>
-                <option value="Self Generated">Self Generated</option>
-                <option value="Trade Show">Trade Show</option>
-                <option value="Web">Web</option>
-                <option value="Word of Mouth">Word of Mouth</option>
-                <option value="Other">Other</option>
+                {sources.map((s) => <option key={s.id} value={s.name}>{s.name}</option>)}
               </select>
             </div>
             <div className="col-md-4">
               <label className="form-label">Industry</label>
-              <input className="form-control" value={form.industry || ""} onChange={(e) => setField("industry", e.target.value)} />
+              <select className="form-select" value={form.industry || ""} onChange={(e) => setField("industry", e.target.value)}>
+                <option value="">Select Industry</option>
+                {industries.map((i) => <option key={i.id} value={i.name}>{i.name}</option>)}
+              </select>
             </div>
             <div className="col-md-4">
               <label className="form-label">Market Segment</label>
@@ -120,7 +131,10 @@ export default function ProspectForm() {
             </div>
             <div className="col-md-4">
               <label className="form-label">Territory</label>
-              <input className="form-control" value={form.territory || ""} onChange={(e) => setField("territory", e.target.value)} />
+              <select className="form-select" value={form.territory || ""} onChange={(e) => setField("territory", e.target.value)}>
+                <option value="">Select Territory</option>
+                {territories.map((t) => <option key={t.id} value={t.territory_name}>{t.territory_name}</option>)}
+              </select>
             </div>
             <div className="col-md-4">
               <label className="form-label">No of Employees</label>
