@@ -23,12 +23,17 @@ import OpportunityTypeList from "./pages/OpportunityTypeList";
 import TerritoryList from "./pages/TerritoryList";
 import ContactList from "./pages/ContactList";
 import ContactForm from "./pages/ContactForm";
+import CustomerList from "./pages/CustomerList";
+import CustomerForm from "./pages/CustomerForm";
 
 export default function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/customers" element={<CustomerList />} />
+        <Route path="/customers/new" element={<CustomerForm />} />
+        <Route path="/customers/:id/edit" element={<CustomerForm />} />
         <Route path="/leads" element={<LeadList />} />
         <Route path="/leads/new" element={<LeadForm />} />
         <Route path="/leads/:id/edit" element={<LeadForm />} />

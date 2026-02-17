@@ -22,12 +22,16 @@ use App\Http\Controllers\Api\OpportunityStageController;
 use App\Http\Controllers\Api\OpportunityTypeController;
 use App\Http\Controllers\Api\TerritoryController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\CustomerGroupController;
+use App\Http\Controllers\Api\PaymentTermController;
+use App\Http\Controllers\Api\PriceListController;
+use App\Http\Controllers\Api\CustomerController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     // Users
     Route::get('users', [UserController::class, 'index']);
-    
+
     Route::get('dashboard/stats', [DashboardController::class, 'stats']);
     Route::get('dashboard/lead-conversion-funnel', [DashboardController::class, 'leadConversionFunnel']);
     Route::get('dashboard/opportunity-pipeline', [DashboardController::class, 'opportunityPipeline']);
@@ -70,6 +74,12 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('competitors', CompetitorController::class)->only(['index', 'store', 'destroy']);
     Route::apiResource('territories', TerritoryController::class);
     Route::apiResource('contacts', ContactController::class);
+
+    // Master Data
+    Route::apiResource('customers', CustomerController::class);
+    Route::apiResource('customer-groups', CustomerGroupController::class);
+    Route::apiResource('payment-terms', PaymentTermController::class);
+    Route::apiResource('price-lists', PriceListController::class);
 
     // Enum routes
     Route::get('enums/qualification-statuses', [EnumController::class, 'qualificationStatuses']);
