@@ -177,8 +177,11 @@ export const industryTypeApi = {
 
 export const lostReasonApi = {
   list: () => api.get<OpportunityLostReason[]>("/lost-reasons").then((r) => r.data),
-  create: (data: { reason: string }) =>
+  get: (id: number) => api.get<OpportunityLostReason>(`/lost-reasons/${id}`).then((r) => r.data),
+  create: (data: { opportunity_id: number; opportunity_lost_reasons: string }) =>
     api.post<OpportunityLostReason>("/lost-reasons", data).then((r) => r.data),
+  update: (id: number, data: { opportunity_id?: number; opportunity_lost_reasons?: string }) =>
+    api.put<OpportunityLostReason>(`/lost-reasons/${id}`, data).then((r) => r.data),
   delete: (id: number) => api.delete(`/lost-reasons/${id}`),
 };
 

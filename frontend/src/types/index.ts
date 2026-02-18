@@ -217,7 +217,11 @@ export interface IndustryType {
 
 export interface OpportunityLostReason {
   id: number;
-  reason: string;
+  opportunity_id: number;
+  opportunity_lost_reasons: string;
+  opportunity?: Opportunity | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Competitor {
