@@ -113,6 +113,10 @@ export default function OpportunityForm() {
     setField("items", newItems);
   }
 
+  const handleContactChange = (contactId: string) => {
+    setField("customer_contact_id", contactId);
+  };
+
   // if (loading) return <div className="text-center py-5 text-muted">Loading...</div>;
 
   return (
