@@ -81,6 +81,8 @@ export interface OpportunityItem {
 export interface Prospect {
   id: number;
   company_name: string;
+  status: string;
+  source: string | null;
   industry: string | null;
   market_segment: string | null;
   customer_group: string | null;
@@ -89,6 +91,13 @@ export interface Prospect {
   annual_revenue: number | null;
   fax: string | null;
   website: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  zip_code: string | null;
   prospect_owner_id: number | null;
   company: string | null;
   leads: Lead[];
@@ -229,6 +238,29 @@ export interface OpportunityType {
   id: number;
   name: string;
   description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProductCategory {
+  id: number;
+  name: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Product {
+  id: number;
+  category_id: number | null;
+  category: ProductCategory | null;
+  name: string;
+  code: string | null;
+  description: string | null;
+  long_description: string | null;
+  slug: string | null;
+  stock: number;
+  quantity: number;
   created_at: string;
   updated_at: string;
 }

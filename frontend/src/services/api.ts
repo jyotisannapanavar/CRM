@@ -25,6 +25,8 @@ import type {
   CustomerGroup,
   PriceList,
   PaymentTerm,
+  ProductCategory,
+  Product,
   EnumOption,
 } from "../types";
 
@@ -284,6 +286,26 @@ export const paymentTermApi = {
   update: (id: number, data: Partial<PaymentTerm>) =>
     api.put<PaymentTerm>(`/payment-terms/${id}`, data).then((r) => r.data),
   delete: (id: number) => api.delete(`/payment-terms/${id}`),
+};
+
+export const productCategoryApi = {
+  list: () => api.get<ProductCategory[]>("/product-categories").then((r) => r.data),
+  get: (id: number) => api.get<ProductCategory>(`/product-categories/${id}`).then((r) => r.data),
+  create: (data: Partial<ProductCategory>) =>
+    api.post<ProductCategory>("/product-categories", data).then((r) => r.data),
+  update: (id: number, data: Partial<ProductCategory>) =>
+    api.put<ProductCategory>(`/product-categories/${id}`, data).then((r) => r.data),
+  delete: (id: number) => api.delete(`/product-categories/${id}`),
+};
+
+export const productApi = {
+  list: () => api.get<Product[]>("/products").then((r) => r.data),
+  get: (id: number) => api.get<Product>(`/products/${id}`).then((r) => r.data),
+  create: (data: Partial<Product>) =>
+    api.post<Product>("/products", data).then((r) => r.data),
+  update: (id: number, data: Partial<Product>) =>
+    api.put<Product>(`/products/${id}`, data).then((r) => r.data),
+  delete: (id: number) => api.delete(`/products/${id}`),
 };
 
 export default api;
