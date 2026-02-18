@@ -29,6 +29,8 @@ use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TaskSourceController;
 use App\Http\Controllers\Api\TaskTypeController;
+use App\Http\Controllers\Api\ProductCategoryController;
+use App\Http\Controllers\Api\ProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -83,6 +85,8 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('customer-groups', CustomerGroupController::class);
     Route::apiResource('payment-terms', PaymentTermController::class);
     Route::apiResource('price-lists', PriceListController::class);
+    Route::apiResource('product-categories', ProductCategoryController::class);
+    Route::apiResource('products', ProductController::class);
     Route::apiResource('tasks', TaskController::class);
     Route::apiResource('task-sources', TaskSourceController::class);
     Route::apiResource('task-types', TaskTypeController::class);
