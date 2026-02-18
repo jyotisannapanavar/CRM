@@ -11,17 +11,38 @@ class OpportunityLostReasonController extends Controller
 {
     public function index(): JsonResponse
     {
-        return response()->json(OpportunityLostReason::all());
+        $reasons = OpportunityLostReason::with('opportunity')->get();
+        return response()->json($reasons);
     }
 
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'reason' => 'required|string|max:255|unique:opportunity_lost_reasons',
+            'opportunity_id' => 'required|exists:opportunities,id',
+            'opportunity_lost_reasons' => 'required|string|max:255',
         ]);
 
         $reason = OpportunityLostReason::create($validated);
-        return response()->json($reason, 201);
+        return response()->json($reason->load('opportunity'), 201);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $reason = OpportunityLostReason::with('opportunity')->findOrFail($id);
+        return response()->json($reason);
+    }
+
+    public function update(Request $request, int $id): JsonResponse
+    {
+        $reason = OpportunityLostReason::findOrFail($id);
+
+        $validated = $request->validate([
+            'opportunity_id' => 'sometimes|required|exists:opportunities,id',
+            'opportunity_lost_reasons' => 'sometimes|required|string|max:255',
+        ]);
+
+        $reason->update($validated);
+        return response()->json($reason->load('opportunity'));
     }
 
     public function destroy(int $id): JsonResponse

@@ -29,6 +29,9 @@ class DatabaseSeeder extends Seeder
             IndustryTypeSeeder::class,
             OpportunityStageSeeder::class,
             OpportunityTypeSeeder::class,
+            TaskSourceSeeder::class,
+            TaskTypeSeeder::class,
+            TaskSeeder::class,
         ]);
     }
 }

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -110,9 +111,9 @@ class Opportunity extends Model
         return $this->belongsTo(User::class, 'opportunity_owner');
     }
 
-    public function lostReasons(): BelongsToMany
+    public function lostReasons(): HasMany
     {
-        return $this->belongsToMany(OpportunityLostReason::class, 'opportunity_lost_reason_details');
+        return $this->hasMany(OpportunityLostReason::class);
     }
 
     public function competitors(): BelongsToMany

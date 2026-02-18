@@ -217,7 +217,11 @@ export interface IndustryType {
 
 export interface OpportunityLostReason {
   id: number;
-  reason: string;
+  opportunity_id: number;
+  opportunity_lost_reasons: string;
+  opportunity?: Opportunity | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Competitor {
@@ -238,6 +242,29 @@ export interface OpportunityType {
   id: number;
   name: string;
   description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProductCategory {
+  id: number;
+  name: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Product {
+  id: number;
+  category_id: number | null;
+  category: ProductCategory | null;
+  name: string;
+  code: string | null;
+  description: string | null;
+  long_description: string | null;
+  slug: string | null;
+  stock: number;
+  quantity: number;
   created_at: string;
   updated_at: string;
 }
