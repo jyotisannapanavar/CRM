@@ -1,53 +1,44 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { customerApi, customerGroupApi } from "@/services/api";
-import type { Customer, CustomerGroup } from "@/types";
+import { contactApi } from "@/services/api"; // Changed from customerApi
+import type { Contact } from "@/types"; // Changed from Customer
 import { Plus, Trash2, Edit2, Eye, Search, X } from "lucide-react";
 import Swal from "sweetalert2";
 
-
-
 export default function CustomerList() {
-    const [customers, setCustomers] = useState<Customer[]>([]);
-    const [groups, setGroups] = useState<CustomerGroup[]>([]);
+    const [contacts, setContacts] = useState<Contact[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
-    const [groupFilter, setGroupFilter] = useState("");
 
-    const fetchCustomers = useCallback(() => {
+    const fetchContacts = useCallback(() => {
         setLoading(true);
         const params: Record<string, string> = {};
         if (search) params.search = search;
-        if (groupFilter) params.customer_group_id = groupFilter;
 
-        customerApi.list(params).then((res) => {
-            setCustomers(Array.isArray(res) ? res : res.data || []);
+        contactApi.list(params).then((res) => {
+            setContacts(Array.isArray(res) ? res : res.data || []);
         }).finally(() => setLoading(false));
-    }, [search, groupFilter]);
+    }, [search]);
 
-    useEffect(() => {
-        customerGroupApi.list().then(setGroups);
-    }, []);
+    useEffect(() => { fetchContacts(); }, [fetchContacts]);
 
-    useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
+    const viewContact = async (contact: Contact) => {
+        const email = contact.emails?.[0]?.email || "—";
+        const phone = contact.phones?.[0]?.phone_no || "—";
 
-    const viewCustomer = async (customer: Customer) => {
         await Swal.fire({
-            title: customer.name,
+            title: `${contact.first_name} ${contact.last_name}`,
             width: 650,
             html: `
                 <div style="text-align:left;">
                     <table class="table table-borderless mb-0" style="font-size:0.9rem;">
-                        <tr><td class="fw-semibold" style="width:140px;">Type</td><td>${customer.customer_type || "—"}</td></tr>
-                        <tr><td class="fw-semibold">Group</td><td>${customer.customer_group?.name || "—"}</td></tr>
-                        <tr><td class="fw-semibold">Territory</td><td>${customer.territory?.territory_name || "—"}</td></tr>
-                        <tr><td class="fw-semibold">Email</td><td>${customer.email || "—"}</td></tr>
-                        <tr><td class="fw-semibold">Phone</td><td>${customer.phone || "—"}</td></tr>
-                        <tr><td class="fw-semibold">Website</td><td>${customer.website || "—"}</td></tr>
-                        <tr><td class="fw-semibold">Tax ID</td><td>${customer.tax_id || "—"}</td></tr>
-                        <tr><td class="fw-semibold">Billing Currency</td><td>${customer.billing_currency || "—"}</td></tr>
+                        <tr><td class="fw-semibold" style="width:140px;">Company</td><td>${contact.company_name || "—"}</td></tr>
+                        <tr><td class="fw-semibold">Designation</td><td>${contact.designation || "—"}</td></tr>
+                        <tr><td class="fw-semibold">Email</td><td>${email}</td></tr>
+                        <tr><td class="fw-semibold">Phone</td><td>${phone}</td></tr>
+                        <tr><td class="fw-semibold">Address</td><td>${contact.address || "—"}</td></tr>
+                        <tr><td class="fw-semibold">Status</td><td>${contact.status || "—"}</td></tr>
                     </table>
-                     ${customer.customer_details ? `<div class="mt-3"><h6 class="fw-semibold border-bottom pb-1">Details</h6><p class="small text-muted">${customer.customer_details}</p></div>` : ''}
                 </div>
             `,
             confirmButtonText: "Close",
@@ -57,7 +48,7 @@ export default function CustomerList() {
 
     const handleDelete = async (id: number) => {
         const result = await Swal.fire({
-            title: "Delete Customer?",
+            title: "Delete Contact?",
             text: "This action cannot be undone.",
             icon: "warning",
             showCancelButton: true,
@@ -65,9 +56,9 @@ export default function CustomerList() {
             confirmButtonText: "Yes, delete it!"
         });
         if (result.isConfirmed) {
-            await customerApi.delete(id);
-            Swal.fire("Deleted!", "Customer has been deleted.", "success");
-            fetchCustomers();
+            await contactApi.delete(id);
+            Swal.fire("Deleted!", "Contact has been deleted.", "success");
+            fetchContacts();
         }
     };
 
@@ -76,12 +67,13 @@ export default function CustomerList() {
             <nav aria-label="breadcrumb">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item"><Link to="/">CRM</Link></li>
-                    <li className="breadcrumb-item active">Customers</li>
+                    <li className="breadcrumb-item active">Customers (Contacts)</li>
                 </ol>
             </nav>
             <div className="d-flex justify-content-between align-items-center mb-3">
-                <h2>Customers</h2>
-                <Link to="/customers/new" className="btn btn-primary"><Plus size={16} className="me-1" /> New Customer</Link>
+                <h2>Customers (Contacts)</h2>
+                {/* Pointing to new contact creation if available, or keeping generic */}
+                <Link to="/customers/new" className="btn btn-primary"><Plus size={16} className="me-1" /> New Contact</Link>
             </div>
             <div className="row g-2 mb-3">
                 <div className="col-md-4">
@@ -90,7 +82,7 @@ export default function CustomerList() {
                         <input
                             type="text"
                             className="form-control ps-5"
-                            placeholder="Search customers..."
+                            placeholder="Search contacts..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
@@ -105,20 +97,14 @@ export default function CustomerList() {
                         )}
                     </div>
                 </div>
-                <div className="col-md-3">
-                    <select className="form-select" value={groupFilter} onChange={(e) => setGroupFilter(e.target.value)}>
-                        <option value="">All Groups</option>
-                        {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
-                    </select>
-                </div>
             </div>
 
             {loading ? (
                 <div className="text-center py-5 text-muted">Loading...</div>
-            ) : customers.length === 0 ? (
+            ) : contacts.length === 0 ? (
                 <div className="text-center py-5">
-                    <p className="text-muted mb-3">No customers found.</p>
-                    <Link to="/customers/new" className="btn btn-primary">Create a new Customer</Link>
+                    <p className="text-muted mb-3">No contacts found.</p>
+                    <Link to="/customers/new" className="btn btn-primary">Create a new Contact</Link>
                 </div>
             ) : (
                 <div className="table-container">
@@ -126,37 +112,35 @@ export default function CustomerList() {
                         <thead className="table-light">
                             <tr>
                                 <th>Name</th>
-                                <th>Group</th>
-                                <th>Type</th>
-                                <th>Territory</th>
+                                <th>Company</th>
+                                <th>Designation</th>
                                 <th>Email</th>
                                 <th>Phone</th>
                                 <th className="text-end">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {customers.map((customer) => (
-                                <tr key={customer.id}>
+                            {contacts.map((contact) => (
+                                <tr key={contact.id}>
                                     <td className="fw-medium">
-                                        <Link to={`/customers/${customer.id}/edit`} className="text-decoration-none text-dark">
-                                            {customer.name}
+                                        <Link to={`/customers/${contact.id}/edit`} className="text-decoration-none text-dark">
+                                            {contact.first_name} {contact.last_name}
                                         </Link>
                                     </td>
-                                    <td>{customer.customer_group?.name || "-"}</td>
-                                    <td>{customer.customer_type || "-"}</td>
-                                    <td>{customer.territory?.territory_name || "-"}</td>
-                                    <td>{customer.email || "-"}</td>
-                                    <td>{customer.phone || "-"}</td>
+                                    <td>{contact.company_name || "-"}</td>
+                                    <td>{contact.designation || "-"}</td>
+                                    <td>{contact.emails?.[0]?.email || "-"}</td>
+                                    <td>{contact.phones?.[0]?.phone_no || "-"}</td>
                                     <td className="text-end">
                                         <button
                                             className="btn btn-sm btn-outline-secondary me-1"
-                                            onClick={() => viewCustomer(customer)}
+                                            onClick={() => viewContact(contact)}
                                             title="View"
                                         >
                                             <Eye size={14} />
                                         </button>
                                         <Link
-                                            to={`/customers/${customer.id}/edit`}
+                                            to={`/customers/${contact.id}/edit`}
                                             className="btn btn-sm btn-outline-primary me-1"
                                             title="Edit"
                                         >
@@ -164,7 +148,7 @@ export default function CustomerList() {
                                         </Link>
                                         <button
                                             className="btn btn-sm btn-outline-danger"
-                                            onClick={() => handleDelete(customer.id)}
+                                            onClick={() => handleDelete(contact.id)}
                                             title="Delete"
                                         >
                                             <Trash2 size={14} />
