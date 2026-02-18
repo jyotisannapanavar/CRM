@@ -20,6 +20,7 @@ import RequestTypeList from "./pages/RequestTypeList";
 import IndustryTypeList from "./pages/IndustryTypeList";
 import OpportunityStageList from "./pages/OpportunityStageList";
 import OpportunityTypeList from "./pages/OpportunityTypeList";
+import OpportunityLostReasonList from "./pages/OpportunityLostReasonList";
 import TerritoryList from "./pages/TerritoryList";
 import ContactList from "./pages/ContactList";
 import ContactForm from "./pages/ContactForm";
@@ -62,6 +63,7 @@ export default function App() {
         <Route path="/industry-types" element={<IndustryTypeList />} />
         <Route path="/opportunity-stages" element={<OpportunityStageList />} />
         <Route path="/opportunity-types" element={<OpportunityTypeList />} />
+        <Route path="/opportunity-lost-reasons" element={<OpportunityLostReasonList />} />
         <Route path="/territories" element={<TerritoryList />} />
         <Route path="/product-categories" element={<ProductCategoryList />} />
         <Route path="/products" element={<ProductList />} />
