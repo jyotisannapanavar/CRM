@@ -70,7 +70,7 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('industry-types', IndustryTypeController::class);
     Route::apiResource('opportunity-stages', OpportunityStageController::class);
     Route::apiResource('opportunity-types', OpportunityTypeController::class);
-    Route::apiResource('lost-reasons', OpportunityLostReasonController::class)->only(['index', 'store', 'destroy']);
+    Route::apiResource('lost-reasons', OpportunityLostReasonController::class);
     Route::apiResource('competitors', CompetitorController::class)->only(['index', 'store', 'destroy']);
     Route::apiResource('territories', TerritoryController::class);
     Route::apiResource('contacts', ContactController::class);
