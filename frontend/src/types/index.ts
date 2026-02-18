@@ -466,3 +466,15 @@ export interface SalesTask {
   created_at: string;
   updated_at: string;
 }
+
+export interface SalesTaskDetail {
+  id: number;
+  sales_task_id: number | null;
+  sales_task?: SalesTask;
+  date: string;
+  time: string;
+  description: string;
+  status: 'Open' | 'In Progress' | 'Closed';
+  created_at: string;
+  updated_at: string;
+}

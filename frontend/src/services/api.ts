@@ -29,6 +29,7 @@ import type {
   Product,
   EnumOption,
   SalesTask,
+  SalesTaskDetail,
   TaskSource,
   TaskType,
 } from "../types";
@@ -344,5 +345,16 @@ export const salesTaskApi = {
   update: (id: number, data: Partial<SalesTask>) =>
     api.put<SalesTask>(`/sales-tasks/${id}`, data).then((r) => r.data),
   delete: (id: number) => api.delete(`/sales-tasks/${id}`),
+};
+
+export const salesTaskDetailApi = {
+  list: (params?: Record<string, string | number>) =>
+    api.get<SalesTaskDetail[]>("/sales-task-details", { params }).then((r) => r.data),
+  get: (id: number) => api.get<SalesTaskDetail>(`/sales-task-details/${id}`).then((r) => r.data),
+  create: (data: Partial<SalesTaskDetail>) =>
+    api.post<SalesTaskDetail>("/sales-task-details", data).then((r) => r.data),
+  update: (id: number, data: Partial<SalesTaskDetail>) =>
+    api.put<SalesTaskDetail>(`/sales-task-details/${id}`, data).then((r) => r.data),
+  delete: (id: number) => api.delete(`/sales-task-details/${id}`),
 };
 
