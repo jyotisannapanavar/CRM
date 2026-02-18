@@ -19,6 +19,7 @@ class StatusSeeder extends Seeder
             ['status_name' => 'Qualified'],
             ['status_name' => 'Unqualified'],
             ['status_name' => 'Interest'],
+            ['status_name' => 'Lost'],
         ];
 
         foreach ($statuses as $status) {

@@ -77,17 +77,30 @@ export default function OpportunityForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const payload = { ...form };
-      // Sanitize payload if needed
+      // Build a clean payload, removing loaded relationship objects
+      const { status, source, industry, owner, lead, customer, contact, prospect,
+              opportunity_type, opportunity_stage, territory, primary_contact,
+              lost_reasons, competitors, notes, ...cleanForm } = form;
+      const payload: Record<string, any> = { ...cleanForm };
+
+      // Explicitly include opportunity_lost_reasons
+      if (form.opportunity_lost_reasons) {
+        payload.opportunity_lost_reasons = form.opportunity_lost_reasons;
+      }
+
+      console.log("=== OPPORTUNITY PAYLOAD ===", payload);
+      console.log("=== opportunity_lost_reasons ===", payload.opportunity_lost_reasons);
+
       if (isEdit) {
-        await opportunityApi.update(Number(id), payload);
+        await opportunityApi.update(Number(id), payload as any);
         Swal.fire("Updated!", "Opportunity has been updated.", "success");
       } else {
-        await opportunityApi.create(payload);
+        await opportunityApi.create(payload as any);
         Swal.fire("Created!", "Opportunity has been created.", "success");
       }
       navigate("/opportunities");
-    } catch {
+    } catch (err) {
+      console.error("=== SUBMIT ERROR ===", err);
       Swal.fire("Error", "Failed to save opportunity.", "error");
     }
   };
@@ -131,7 +144,7 @@ export default function OpportunityForm() {
 
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>{isEdit ? "Edit Opportunity" : "New Opportunity"} <span className="text-danger fs-6">{isEdit ? "" : "• Not Saved"}</span></h2>
-        <button type="submit" onClick={handleSubmit} className="btn btn-primary">Save</button>
+        <button type="button" onClick={handleSubmit} className="btn btn-primary">Save</button>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -167,11 +180,36 @@ export default function OpportunityForm() {
             </div>
             <div className="col-md-6">
               <label className="form-label">Status <span className="text-danger">*</span></label>
-              <select className="form-select" value={form.status_id || ""} onChange={(e) => setField("status_id", e.target.value)} required>
+              <select className="form-select" value={form.status_id || ""} onChange={(e) => {
+                setField("status_id", e.target.value);
+                // Clear lost reason if status is not "Lost"
+                const selectedStatus = statuses.find(s => s.id === Number(e.target.value));
+                if (!selectedStatus || selectedStatus.status_name.toLowerCase() !== 'lost') {
+                  setField("opportunity_lost_reasons", "");
+                }
+              }} required>
                 <option value="">Select Status</option>
                 {statuses.map((s) => <option key={s.id} value={s.id}>{s.status_name}</option>)}
               </select>
             </div>
+
+            {/* Show Lost Reason field when status is "Lost" */}
+            {(() => {
+              const selectedStatus = statuses.find(s => s.id === Number(form.status_id));
+              return selectedStatus && selectedStatus.status_name.toLowerCase() === 'lost';
+            })() && (
+              <div className="col-md-12">
+                <label className="form-label">Lost Reason <span className="text-danger">*</span></label>
+                <textarea
+                  className="form-control"
+                  rows={3}
+                  placeholder="Enter the reason for losing this opportunity..."
+                  value={form.opportunity_lost_reasons || ""}
+                  onChange={(e) => setField("opportunity_lost_reasons", e.target.value)}
+                  required
+                />
+              </div>
+            )}
 
             {form.opportunity_from === "lead" && (
               <div className="col-md-6">

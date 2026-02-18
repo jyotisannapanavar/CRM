@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Opportunity;
+use App\Models\OpportunityLostReason;
+use App\Models\Status;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -80,16 +82,28 @@ class OpportunityController extends Controller
             'next_contact_date' => 'nullable|date',
             'to_discuss' => 'nullable|string',
             'with_items' => 'boolean',
+            'opportunity_lost_reasons' => 'nullable|string|max:255',
         ]);
 
-        $opportunityData = collect($validated)->except(['items'])->toArray();
+        $opportunityData = collect($validated)->except(['items', 'opportunity_lost_reasons'])->toArray();
         $opportunity = Opportunity::create($opportunityData);
 
         if (!empty($validated['items'])) {
             $opportunity->items()->createMany($validated['items']);
         }
 
-        return response()->json($opportunity->fresh('items'), 201);
+        // Save lost reason if status is "Lost"
+        if (!empty($validated['opportunity_lost_reasons']) && !empty($validated['status_id'])) {
+            $status = Status::find($validated['status_id']);
+            if ($status && strtolower($status->status_name) === 'lost') {
+                OpportunityLostReason::create([
+                    'opportunity_id' => $opportunity->id,
+                    'opportunity_lost_reasons' => $validated['opportunity_lost_reasons'],
+                ]);
+            }
+        }
+
+        return response()->json($opportunity->fresh('items', 'lostReasons'), 201);
     }
 
     public function show(int $id): JsonResponse
@@ -139,10 +153,11 @@ class OpportunityController extends Controller
             'next_contact_date' => 'nullable|date',
             'to_discuss' => 'nullable|string',
             'with_items' => 'boolean',
+            'opportunity_lost_reasons' => 'nullable|string|max:255',
         ]);
 
         $opportunity = Opportunity::findOrFail($id);
-        $opportunityData = collect($validated)->except(['items'])->toArray();
+        $opportunityData = collect($validated)->except(['items', 'opportunity_lost_reasons'])->toArray();
         $opportunity->update($opportunityData);
 
         if (array_key_exists('items', $validated)) {
@@ -152,7 +167,18 @@ class OpportunityController extends Controller
             }
         }
 
-        return response()->json($opportunity->fresh('items'));
+        // Save lost reason if status is "Lost"
+        if (!empty($validated['opportunity_lost_reasons']) && !empty($validated['status_id'])) {
+            $status = Status::find($validated['status_id']);
+            if ($status && strtolower($status->status_name) === 'lost') {
+                OpportunityLostReason::create([
+                    'opportunity_id' => $opportunity->id,
+                    'opportunity_lost_reasons' => $validated['opportunity_lost_reasons'],
+                ]);
+            }
+        }
+
+        return response()->json($opportunity->fresh('items', 'lostReasons'));
     }
 
     public function destroy(int $id): JsonResponse
