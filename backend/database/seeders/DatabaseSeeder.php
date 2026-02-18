@@ -31,7 +31,6 @@ class DatabaseSeeder extends Seeder
             OpportunityTypeSeeder::class,
             TaskSourceSeeder::class,
             TaskTypeSeeder::class,
-            TaskSeeder::class,
         ]);
     }
 }

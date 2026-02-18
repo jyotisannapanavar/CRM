@@ -16,6 +16,7 @@ const links = [
   { to: "/opportunity-lost-reasons", label: "Lost Reasons", icon: ThumbsDown },
   { to: "/appointments", label: "Appointments", icon: CalendarClock },
   { to: "/settings", label: "Settings", icon: Settings },
+  { to: "/sales-tasks", label: "Sales Tasks", icon: Briefcase },
 ];
 
 export default function Layout() {

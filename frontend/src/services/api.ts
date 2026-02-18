@@ -28,6 +28,9 @@ import type {
   ProductCategory,
   Product,
   EnumOption,
+  SalesTask,
+  TaskSource,
+  TaskType,
 } from "../types";
 
 const api = axios.create({
@@ -312,4 +315,34 @@ export const productApi = {
 };
 
 export default api;
+
+export const taskSourceApi = {
+  list: () => api.get<TaskSource[]>("/task-sources").then((r) => r.data),
+  get: (id: number) => api.get<TaskSource>(`/task-sources/${id}`).then((r) => r.data),
+  create: (data: Partial<TaskSource>) =>
+    api.post<TaskSource>("/task-sources", data).then((r) => r.data),
+  update: (id: number, data: Partial<TaskSource>) =>
+    api.put<TaskSource>(`/task-sources/${id}`, data).then((r) => r.data),
+  delete: (id: number) => api.delete(`/task-sources/${id}`),
+};
+
+export const taskTypeApi = {
+  list: () => api.get<TaskType[]>("/task-types").then((r) => r.data),
+  get: (id: number) => api.get<TaskType>(`/task-types/${id}`).then((r) => r.data),
+  create: (data: Partial<TaskType>) =>
+    api.post<TaskType>("/task-types", data).then((r) => r.data),
+  update: (id: number, data: Partial<TaskType>) =>
+    api.put<TaskType>(`/task-types/${id}`, data).then((r) => r.data),
+  delete: (id: number) => api.delete(`/task-types/${id}`),
+};
+
+export const salesTaskApi = {
+  list: () => api.get<SalesTask[]>("/sales-tasks").then((r) => r.data),
+  get: (id: number) => api.get<SalesTask>(`/sales-tasks/${id}`).then((r) => r.data),
+  create: (data: Partial<SalesTask>) =>
+    api.post<SalesTask>("/sales-tasks", data).then((r) => r.data),
+  update: (id: number, data: Partial<SalesTask>) =>
+    api.put<SalesTask>(`/sales-tasks/${id}`, data).then((r) => r.data),
+  delete: (id: number) => api.delete(`/sales-tasks/${id}`),
+};
 

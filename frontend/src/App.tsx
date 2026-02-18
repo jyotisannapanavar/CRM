@@ -29,6 +29,9 @@ import CustomerForm from "./pages/CustomerForm";
 import ProductCategoryList from "./pages/ProductCategoryList";
 import ProductList from "./pages/ProductList";
 import ProductForm from "./pages/ProductForm";
+import SalesTaskList from "./pages/SalesTaskList";
+import SalesTaskForm from "./pages/SalesTaskForm";
+import SalesTaskDetail from "./pages/SalesTaskDetail";
 
 export default function App() {
   return (
@@ -67,6 +70,10 @@ export default function App() {
         <Route path="/territories" element={<TerritoryList />} />
         <Route path="/product-categories" element={<ProductCategoryList />} />
         <Route path="/products" element={<ProductList />} />
+        <Route path="/sales-tasks" element={<SalesTaskList />} />
+        <Route path="/sales-tasks/new" element={<SalesTaskForm />} />
+        <Route path="/sales-tasks/:id" element={<SalesTaskDetail />} />
+        <Route path="/sales-tasks/:id/edit" element={<SalesTaskForm />} />
         <Route path="/products/new" element={<ProductForm />} />
         <Route path="/products/:id/edit" element={<ProductForm />} />
         <Route path="/contacts" element={<ContactList />} />

@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\CustomerGroupController;
 use App\Http\Controllers\Api\PaymentTermController;
 use App\Http\Controllers\Api\PriceListController;
 use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\SalesTaskController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TaskSourceController;
 use App\Http\Controllers\Api\TaskTypeController;
@@ -87,7 +88,8 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('price-lists', PriceListController::class);
     Route::apiResource('product-categories', ProductCategoryController::class);
     Route::apiResource('products', ProductController::class);
-    Route::apiResource('tasks', TaskController::class);
+    Route::apiResource('sales-tasks', SalesTaskController::class);
+    // Route::apiResource('tasks', TaskController::class);
     Route::apiResource('task-sources', TaskSourceController::class);
     Route::apiResource('task-types', TaskTypeController::class);
 
