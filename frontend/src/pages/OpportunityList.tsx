@@ -104,7 +104,7 @@ export default function OpportunityList() {
                 <th>Opportunity From</th>
                 <th>Party</th>
                 <th>Status</th>
-                {/* <th>Stage</th> */}
+                <th>Type</th>
                 <th>Probability</th>
                 <th>Expected Close</th>
                 <th className="text-end">Amount</th>
@@ -124,7 +124,7 @@ export default function OpportunityList() {
                   return item.party_name || "—";
                 })();
 
-                // const stageName = item.opportunity_stage?.name || stages.find(s => s.id === item.opportunity_stage_id)?.name || "—";
+                const stageName = item.opportunity_type?.name || stages.find(s => s.id === item.opportunity_type_id)?.name || "—";
 
                 return (
                   <tr key={item.id}>
@@ -141,7 +141,7 @@ export default function OpportunityList() {
                         <span className="badge bg-secondary">{item.status.status_name}</span>
                       ) : "—"}
                     </td>
-                    {/* <td>{stageName}</td> */}
+                    <td>{stageName}</td>
                     <td>{item.probability !== null ? `${item.probability}%` : "—"}</td>
                     <td>{item.expected_closing || "—"}</td>
                     <td className="text-end">{item.currency || "$"}{item.opportunity_amount?.toLocaleString() || "0"}</td>
