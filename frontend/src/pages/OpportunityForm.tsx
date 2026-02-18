@@ -162,7 +162,7 @@ export default function OpportunityForm() {
               }}>
                 <option value="lead">Lead</option>
                 <option value="customer">Customer</option>
-                <option value="prospect">Prospect</option>
+                {/* <option value="prospect">Prospect</option> */}
               </select>
             </div>
             <div className="col-md-6">
