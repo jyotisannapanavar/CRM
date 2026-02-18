@@ -25,6 +25,9 @@ import ContactList from "./pages/ContactList";
 import ContactForm from "./pages/ContactForm";
 import CustomerList from "./pages/CustomerList";
 import CustomerForm from "./pages/CustomerForm";
+import ProductCategoryList from "./pages/ProductCategoryList";
+import ProductList from "./pages/ProductList";
+import ProductForm from "./pages/ProductForm";
 
 export default function App() {
   return (
@@ -60,6 +63,10 @@ export default function App() {
         <Route path="/opportunity-stages" element={<OpportunityStageList />} />
         <Route path="/opportunity-types" element={<OpportunityTypeList />} />
         <Route path="/territories" element={<TerritoryList />} />
+        <Route path="/product-categories" element={<ProductCategoryList />} />
+        <Route path="/products" element={<ProductList />} />
+        <Route path="/products/new" element={<ProductForm />} />
+        <Route path="/products/:id/edit" element={<ProductForm />} />
         <Route path="/contacts" element={<ContactList />} />
         <Route path="/contacts/new" element={<ContactForm />} />
         <Route path="/contacts/:id/edit" element={<ContactForm />} />

@@ -26,6 +26,8 @@ use App\Http\Controllers\Api\CustomerGroupController;
 use App\Http\Controllers\Api\PaymentTermController;
 use App\Http\Controllers\Api\PriceListController;
 use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\ProductCategoryController;
+use App\Http\Controllers\Api\ProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -80,6 +82,8 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('customer-groups', CustomerGroupController::class);
     Route::apiResource('payment-terms', PaymentTermController::class);
     Route::apiResource('price-lists', PriceListController::class);
+    Route::apiResource('product-categories', ProductCategoryController::class);
+    Route::apiResource('products', ProductController::class);
 
     // Enum routes
     Route::get('enums/qualification-statuses', [EnumController::class, 'qualificationStatuses']);

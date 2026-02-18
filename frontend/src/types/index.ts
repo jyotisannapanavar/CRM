@@ -242,6 +242,29 @@ export interface OpportunityType {
   updated_at: string;
 }
 
+export interface ProductCategory {
+  id: number;
+  name: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Product {
+  id: number;
+  category_id: number | null;
+  category: ProductCategory | null;
+  name: string;
+  code: string | null;
+  description: string | null;
+  long_description: string | null;
+  slug: string | null;
+  stock: number;
+  quantity: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface CrmNote {
   id: number;
   notable_type: string;
