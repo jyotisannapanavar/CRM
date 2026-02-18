@@ -47,6 +47,9 @@ class OpportunityController extends Controller
             'opportunity_stage_id' => 'nullable|integer|exists:opportunity_stages,id',
             'opportunity_from' => 'nullable|string|in:lead,customer,prospect',
             'lead_id' => 'nullable|integer|exists:leads,id',
+            'customer_id' => 'nullable|integer|exists:customers,id',
+            'customer_contact_id' => 'nullable|integer|exists:customer_contacts,id',
+            'prospect_id' => 'nullable|integer|exists:prospects,id',
             'source_id' => 'nullable|integer|exists:sources,id',
             'expected_closing' => 'nullable|date',
             'party_name' => 'nullable|string|max:255',
@@ -63,15 +66,35 @@ class OpportunityController extends Controller
             'market_segment' => 'nullable|string|max:255',
             'currency' => 'nullable|string|max:10',
             'opportunity_amount' => 'nullable|numeric|min:0',
+            'items' => 'nullable|array',
+            'items.*.item_code' => 'required_with:items|string|max:255',
+            'items.*.item_name' => 'nullable|string|max:255',
+            'items.*.qty' => 'required_with:items|numeric|min:0',
+            'items.*.rate' => 'required_with:items|numeric|min:0',
+            'items.*.amount' => 'required_with:items|numeric|min:0',
+            'contact_person' => 'nullable|string|max:255',
+            'contact_email' => 'nullable|email|max:255',
+            'contact_mobile' => 'nullable|string|max:20',
+            'territory_id' => 'nullable|integer|exists:territories,id',
+            'next_contact_by' => 'nullable|string|max:255',
+            'next_contact_date' => 'nullable|date',
+            'to_discuss' => 'nullable|string',
+            'with_items' => 'boolean',
         ]);
 
-        $opportunity = Opportunity::create($validated);
-        return response()->json($opportunity->fresh(), 201);
+        $opportunityData = collect($validated)->except(['items'])->toArray();
+        $opportunity = Opportunity::create($opportunityData);
+
+        if (!empty($validated['items'])) {
+            $opportunity->items()->createMany($validated['items']);
+        }
+
+        return response()->json($opportunity->fresh('items'), 201);
     }
 
     public function show(int $id): JsonResponse
     {
-        $opportunity = Opportunity::findOrFail($id);
+        $opportunity = Opportunity::with('items')->findOrFail($id);
         return response()->json($opportunity);
     }
 
@@ -83,6 +106,9 @@ class OpportunityController extends Controller
             'opportunity_stage_id' => 'nullable|integer|exists:opportunity_stages,id',
             'opportunity_from' => 'nullable|string|in:lead,customer,prospect',
             'lead_id' => 'nullable|integer|exists:leads,id',
+            'customer_id' => 'nullable|integer|exists:customers,id',
+            'customer_contact_id' => 'nullable|integer|exists:customer_contacts,id',
+            'prospect_id' => 'nullable|integer|exists:prospects,id',
             'source_id' => 'nullable|integer|exists:sources,id',
             'expected_closing' => 'nullable|date',
             'party_name' => 'nullable|string|max:255',
@@ -99,11 +125,34 @@ class OpportunityController extends Controller
             'market_segment' => 'nullable|string|max:255',
             'currency' => 'nullable|string|max:10',
             'opportunity_amount' => 'nullable|numeric|min:0',
+            'items' => 'nullable|array',
+            'items.*.item_code' => 'required_with:items|string|max:255',
+            'items.*.item_name' => 'nullable|string|max:255',
+            'items.*.qty' => 'required_with:items|numeric|min:0',
+            'items.*.rate' => 'required_with:items|numeric|min:0',
+            'items.*.amount' => 'required_with:items|numeric|min:0',
+            'contact_person' => 'nullable|string|max:255',
+            'contact_email' => 'nullable|email|max:255',
+            'contact_mobile' => 'nullable|string|max:20',
+            'territory_id' => 'nullable|integer|exists:territories,id',
+            'next_contact_by' => 'nullable|string|max:255',
+            'next_contact_date' => 'nullable|date',
+            'to_discuss' => 'nullable|string',
+            'with_items' => 'boolean',
         ]);
 
         $opportunity = Opportunity::findOrFail($id);
-        $opportunity->update($validated);
-        return response()->json($opportunity->fresh());
+        $opportunityData = collect($validated)->except(['items'])->toArray();
+        $opportunity->update($opportunityData);
+
+        if (array_key_exists('items', $validated)) {
+            $opportunity->items()->delete();
+            if (!empty($validated['items'])) {
+                $opportunity->items()->createMany($validated['items']);
+            }
+        }
+
+        return response()->json($opportunity->fresh('items'));
     }
 
     public function destroy(int $id): JsonResponse

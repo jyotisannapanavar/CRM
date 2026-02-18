@@ -12,7 +12,7 @@ export default function OpportunityList() {
   const [statusFilter, setStatusFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [stageFilter, setStageFilter] = useState("");
-  
+
   const [statuses, setStatuses] = useState<Status[]>([]);
   const [types, setTypes] = useState<OpportunityType[]>([]);
   const [stages, setStages] = useState<OpportunityStage[]>([]);
@@ -97,39 +97,61 @@ export default function OpportunityList() {
         </div>
       ) : (
         <div className="table-container">
-          <table className="table table-hover mb-0">
+          <table className="table table-hover align-middle mb-0">
             <thead className="table-light">
               <tr>
-                <th>Party Name</th>
-                <th>Company</th>
-                <th>Type</th>
+                <th>ID</th>
+                <th>Opportunity From</th>
+                <th>Party</th>
                 <th>Status</th>
-                <th>Stage</th>
-                <th>Amount</th>
+                <th>Type</th>
+                <th>Probability</th>
                 <th>Expected Close</th>
+                <th className="text-end">Amount</th>
                 <th className="text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {items.map((item) => (
-                <tr key={item.id}>
-                  <td className="fw-medium">{item.party_name || "-"}</td>
-                  <td>{item.company_name || "-"}</td>
-                  <td>{item.opportunity_type?.name || "-"}</td>
-                  <td>
-                    {item.status ? (
-                      <span className="badge bg-secondary">{item.status.status_name}</span>
-                    ) : "-"}
-                  </td>
-                  <td>{item.opportunity_stage?.name || "-"}</td>
-                  <td>{item.currency || "$"}{item.opportunity_amount?.toLocaleString() || "0"}</td>
-                  <td>{item.expected_closing || "-"}</td>
-                  <td className="text-end">
-                    <Link to={`/opportunities/${item.id}/edit`} className="btn btn-sm btn-outline-secondary me-1" title="Edit"><Pencil size={14} /></Link>
-                    <button className="btn btn-sm btn-outline-danger" title="Delete" onClick={() => handleDelete(item.id)}><Trash2 size={14} /></button>
-                  </td>
-                </tr>
-              ))}
+              {items.map((item) => {
+                const partyName = (() => {
+                  if (item.opportunity_from === 'lead' && item.lead) {
+                    return `${item.lead.first_name} ${item.lead.last_name || ''}`.trim();
+                  }
+                  if (item.opportunity_from === 'customer') {
+                    if (item.customer) return item.customer.name;
+                    if (item.contact) return item.contact.full_name || `${item.contact.first_name} ${item.contact.last_name}`.trim();
+                  }
+                  return item.party_name || "—";
+                })();
+
+                const stageName = item.opportunity_type?.name || stages.find(s => s.id === item.opportunity_type_id)?.name || "—";
+
+                return (
+                  <tr key={item.id}>
+                    <td><Link to={`/opportunities/${item.id}/edit`} className="text-decoration-none fw-bold">{item.naming_series || item.id}</Link></td>
+                    <td>
+                      <div className="fw-medium text-capitalize">{item.opportunity_from || "—"}</div>
+                    </td>
+                    <td>
+                      <div className="fw-medium">{partyName}</div>
+                      {item.company_name && <div className="text-muted small">{item.company_name}</div>}
+                    </td>
+                    <td>
+                      {item.status ? (
+                        <span className="badge bg-secondary">{item.status.status_name}</span>
+                      ) : "—"}
+                    </td>
+                    <td>{stageName}</td>
+                    <td>{item.probability !== null ? `${item.probability}%` : "—"}</td>
+                    <td>{item.expected_closing || "—"}</td>
+                    <td className="text-end">{item.currency || "$"}{item.opportunity_amount?.toLocaleString() || "0"}</td>
+                    <td className="text-end">
+                      <Link to={`/opportunities/${item.id}/edit`} className="btn btn-sm btn-icon btn-outline-primary me-1" title="Edit"><Pencil size={14} /></Link>
+                      <button className="btn btn-sm btn-icon btn-outline-danger" title="Delete" onClick={() => handleDelete(item.id)}><Trash2 size={14} /></button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

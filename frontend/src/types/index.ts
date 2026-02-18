@@ -63,6 +63,21 @@ export interface Opportunity {
   market_segment: string | null;
   currency: string | null;
   opportunity_amount: number | null;
+  customer_id: number | null;
+  customer: Customer | null;
+  prospect_id: number | null;
+  prospect: Prospect | null;
+  items: OpportunityItem[];
+  with_items: boolean;
+  contact_person: string | null;
+  contact_email: string | null;
+  contact_mobile: string | null;
+  territory_id: number | null;
+  territory: Territory | null;
+  next_contact_by: string | null;
+  next_contact_date: string | null;
+  to_discuss: string | null;
+  contact: Contact | null;
   created_at: string;
   updated_at: string;
 }

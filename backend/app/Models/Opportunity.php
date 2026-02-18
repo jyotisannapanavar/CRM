@@ -36,6 +36,18 @@ class Opportunity extends Model
         'market_segment',
         'currency',
         'opportunity_amount',
+        'with_items',
+        'name',
+        'territory_id',
+        'contact_person',
+        'contact_email',
+        'contact_mobile',
+        'to_discuss',
+        'next_contact_by',
+        'next_contact_date',
+        'customer_id',
+        'customer_contact_id',
+        'prospect_id',
     ];
 
     protected $casts = [
@@ -43,9 +55,11 @@ class Opportunity extends Model
         'opportunity_amount' => 'decimal:2',
         'probability' => 'decimal:2',
         'expected_closing' => 'date',
+        'next_contact_date' => 'date',
+        'with_items' => 'boolean',
     ];
 
-    protected $with = ['opportunityType', 'opportunityStage', 'source', 'status', 'industry', 'owner', 'lead'];
+    protected $with = ['opportunityType', 'opportunityStage', 'source', 'status', 'industry', 'owner', 'lead', 'customer', 'contact', 'prospect', 'items'];
 
     public function opportunityType(): BelongsTo
     {
@@ -65,6 +79,21 @@ class Opportunity extends Model
     public function lead(): BelongsTo
     {
         return $this->belongsTo(Lead::class);
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function contact(): BelongsTo
+    {
+        return $this->belongsTo(Contact::class, 'customer_contact_id');
+    }
+
+    public function prospect(): BelongsTo
+    {
+        return $this->belongsTo(Prospect::class);
     }
 
     public function status(): BelongsTo
@@ -95,5 +124,10 @@ class Opportunity extends Model
     public function notes(): MorphMany
     {
         return $this->morphMany(CrmNote::class, 'notable');
+    }
+
+    public function items(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(OpportunityItem::class);
     }
 }
