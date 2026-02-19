@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { Plus, Edit, Trash2, Eye } from "lucide-react";
+import Swal from 'sweetalert2';
 import { salesTaskDetailApi } from "../services/api";
 import { SalesTaskDetail } from "../types";
 import SalesTaskDetailModal from "./SalesTaskDetailModal";
@@ -28,12 +28,32 @@ export default function SalesTaskDetailList() {
     };
 
     const handleDelete = async (id: number) => {
-        if (confirm("Are you sure you want to delete this detail?")) {
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        });
+
+        if (result.isConfirmed) {
             try {
                 await salesTaskDetailApi.delete(id);
+                Swal.fire(
+                    'Deleted!',
+                    'Your detail has been deleted.',
+                    'success'
+                );
                 loadDetails();
             } catch (error) {
                 console.error("Failed to delete detail:", error);
+                Swal.fire(
+                    'Error!',
+                    'Failed to delete detail.',
+                    'error'
+                );
             }
         }
     };

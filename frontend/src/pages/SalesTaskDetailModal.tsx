@@ -87,7 +87,9 @@ export default function SalesTaskDetailModal({ show, onHide, onSave, detail, sal
             <div className="modal-dialog">
                 <div className="modal-content">
                     <div className="modal-header">
-                        <h5 className="modal-title">{detail ? "Edit Sales Task Detail" : "New Sales Task Detail"}</h5>
+                        <h5 className="modal-title">
+                            {readOnly ? "View Sales Task Detail" : detail ? "Edit Sales Task Detail" : "New Sales Task Detail"}
+                        </h5>
                         <button type="button" className="btn-close" onClick={onHide}></button>
                     </div>
                     <form onSubmit={handleSubmit}>

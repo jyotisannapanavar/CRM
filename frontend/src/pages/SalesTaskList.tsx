@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { Plus, Edit, Trash2, Eye } from "lucide-react";
+import Swal from 'sweetalert2';
 import { SalesTask } from "../types";
 import { salesTaskApi } from "../services/api";
+import SalesTaskModal from "./SalesTaskModal";
 
 export default function SalesTaskList() {
     const [salesTasks, setSalesTasks] = useState<SalesTask[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showModal, setShowModal] = useState(false);
+    const [selectedTaskId, setSelectedTaskId] = useState<number | undefined>(undefined);
+    const [isReadOnly, setIsReadOnly] = useState(false);
 
     useEffect(() => {
         loadSalesTasks();
@@ -24,14 +28,56 @@ export default function SalesTaskList() {
     };
 
     const handleDelete = async (id: number) => {
-        if (confirm("Are you sure you want to delete this sales task?")) {
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        });
+
+        if (result.isConfirmed) {
             try {
                 await salesTaskApi.delete(id);
+                Swal.fire(
+                    'Deleted!',
+                    'Your sales task has been deleted.',
+                    'success'
+                );
                 loadSalesTasks();
             } catch (error) {
                 console.error("Failed to delete sales task:", error);
+                Swal.fire(
+                    'Error!',
+                    'Failed to delete sales task.',
+                    'error'
+                );
             }
         }
+    };
+
+    const handleAdd = () => {
+        setSelectedTaskId(undefined);
+        setIsReadOnly(false);
+        setShowModal(true);
+    };
+
+    const handleEdit = (id: number) => {
+        setSelectedTaskId(id);
+        setIsReadOnly(false);
+        setShowModal(true);
+    };
+
+    const handleView = (id: number) => {
+        setSelectedTaskId(id);
+        setIsReadOnly(true);
+        setShowModal(true);
+    };
+
+    const handleSave = () => {
+        loadSalesTasks();
     };
 
     if (loading) return <div className="p-4">Loading...</div>;
@@ -40,10 +86,13 @@ export default function SalesTaskList() {
         <div className="container-fluid p-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h2>Sales Tasks</h2>
-                <Link to="/sales-tasks/new" className="btn btn-primary d-flex align-items-center gap-2">
+                <button
+                    onClick={handleAdd}
+                    className="btn btn-primary d-flex align-items-center gap-2"
+                >
                     <Plus size={20} />
                     Add Sales Task
-                </Link>
+                </button>
             </div>
 
             <div className="card shadow-sm">
@@ -55,7 +104,7 @@ export default function SalesTaskList() {
                                     <th>Type</th>
                                     <th>Source</th>
                                     <th>Assigned To</th>
-                                    <th>Created At</th>
+                                    {/* <th>Created At</th> */}
                                     <th className="text-end">Actions</th>
                                 </tr>
                             </thead>
@@ -85,23 +134,30 @@ export default function SalesTaskList() {
                                                     <span className="text-muted fst-italic">Unassigned</span>
                                                 )}
                                             </td>
-                                            <td>{new Date(task.created_at).toLocaleDateString()}</td>
+                                            {/* <td>{new Date(task.created_at).toLocaleDateString()}</td> */}
                                             <td className="text-end">
                                                 <div className="d-flex gap-2 justify-content-end">
-                                                    <Link
-                                                        to={`/sales-tasks/${task.id}`}
+                                                    <button
+                                                        onClick={() => handleView(task.id)}
                                                         className="btn btn-sm btn-outline-info"
                                                         title="View"
                                                     >
                                                         <Eye size={16} />
-                                                    </Link>
-                                                    <Link
-                                                        to={`/sales-tasks/${task.id}/edit`}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleEdit(task.id)}
                                                         className="btn btn-sm btn-outline-primary"
                                                         title="Edit"
                                                     >
                                                         <Edit size={16} />
-                                                    </Link>
+                                                    </button>
+                                                    {/* <Link
+                                                        to={`/sales-tasks/${task.id}/details`}
+                                                        className="btn btn-sm btn-outline-secondary"
+                                                        title="Details"
+                                                    >
+                                                        Details
+                                                    </Link> */}
                                                     <button
                                                         onClick={() => handleDelete(task.id)}
                                                         className="btn btn-sm btn-outline-danger"
@@ -119,6 +175,14 @@ export default function SalesTaskList() {
                     </div>
                 </div>
             </div>
+
+            <SalesTaskModal
+                show={showModal}
+                onHide={() => setShowModal(false)}
+                onSave={handleSave}
+                taskId={selectedTaskId}
+                readOnly={isReadOnly}
+            />
         </div>
     );
 }
