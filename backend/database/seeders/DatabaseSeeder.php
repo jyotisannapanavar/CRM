@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             StatusSeeder::class,
             RequestTypeSeeder::class,
             IndustryTypeSeeder::class,
+            MasterDataSeeder::class,    
             OpportunityStageSeeder::class,
             OpportunityTypeSeeder::class,
             TaskSourceSeeder::class,
