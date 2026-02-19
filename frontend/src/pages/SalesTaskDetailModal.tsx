@@ -106,7 +106,7 @@ export default function SalesTaskDetailModal({ show, onHide, onSave, detail, sal
                                     <option value="">Select Sales Task</option>
                                     {salesTasks.map((t) => (
                                         <option key={t.id} value={t.id}>
-                                            #{t.id} - {t.task_type?.name} ({t.task_source?.name})
+                                            {t.task_type?.name} ({t.task_source?.name})
                                         </option>
                                     ))}
                                 </select>

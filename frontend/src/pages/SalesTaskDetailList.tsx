@@ -117,6 +117,7 @@ export default function SalesTaskDetailList() {
                                 <thead className="table-light">
                                     <tr>
                                         <th>Task Type</th>
+                                        <th>Task Source</th>
                                         <th>Date / Time</th>
                                         <th>Description</th>
                                         <th>Status</th>
@@ -128,6 +129,9 @@ export default function SalesTaskDetailList() {
                                         <tr key={detail.id}>
                                             <td>
                                                 {detail.sales_task?.task_type?.name || <span className="text-muted fst-italic">Unknown Type</span>}
+                                                
+                                            </td>
+                                            <td>
                                                 {detail.sales_task?.task_source && (
                                                     <div className="small text-muted">{detail.sales_task.task_source.name}</div>
                                                 )}
