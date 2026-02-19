@@ -33,6 +33,7 @@ use App\Http\Controllers\Api\TaskSourceController;
 use App\Http\Controllers\Api\TaskTypeController;
 use App\Http\Controllers\Api\ProductCategoryController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\OpportunityProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -89,6 +90,7 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('price-lists', PriceListController::class);
     Route::apiResource('product-categories', ProductCategoryController::class);
     Route::apiResource('products', ProductController::class);
+    Route::apiResource('opportunity-products', OpportunityProductController::class);
     Route::apiResource('sales-tasks', SalesTaskController::class);
     Route::apiResource('sales-task-details', SalesTaskDetailController::class);
     // Route::apiResource('tasks', TaskController::class);
