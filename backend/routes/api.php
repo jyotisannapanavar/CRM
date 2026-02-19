@@ -51,6 +51,7 @@ Route::prefix('v1')->group(function () {
 
     Route::apiResource('opportunities', OpportunityController::class);
     Route::post('opportunities/{id}/declare-lost', [OpportunityController::class, 'declareLost']);
+    Route::get('opportunities/{id}/products', [OpportunityController::class, 'getProducts']);
     Route::post('opportunities/set-multiple-status', [OpportunityController::class, 'setMultipleStatus']);
 
     Route::apiResource('prospects', ProspectController::class);

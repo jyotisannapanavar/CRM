@@ -80,8 +80,8 @@ export const opportunityApi = {
   update: (id: number, data: Partial<Opportunity>) =>
     api.put<Opportunity>(`/opportunities/${id}`, data).then((r) => r.data),
   delete: (id: number) => api.delete(`/opportunities/${id}`),
-  declareLost: (id: number, data: { lost_reason_ids: number[]; competitor_ids?: number[]; detailed_reason?: string }) =>
-    api.post<Opportunity>(`/opportunities/${id}/declare-lost`, data).then((r) => r.data),
+  getProducts: (id: number) => api.get(`/opportunities/${id}/products`).then((res) => res.data),
+  declareLost: (id: number, data: any) => api.post(`/opportunities/${id}/declare-lost`, data).then((res) => res.data),
 };
 
 export const prospectApi = {

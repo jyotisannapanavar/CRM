@@ -90,22 +90,23 @@ export default function OpportunityForm() {
     if (id) {
       setLoading(true);
       opportunityApi.get(Number(id)).then(async (item) => {
-        // Also fetch opportunity products if editing
+        // Fetch opportunity products using new API
         let existingItems: any[] = [];
         try {
-          existingItems = await opportunityProductApi.list({ opportunity_id: item.id });
+          existingItems = await opportunityApi.getProducts(item.id);
         } catch (e) {
           console.error("Failed to load existing items", e);
         }
 
-        // Map existing items to form format
+        // Map API response to form format
         const mappedItems = existingItems.map((p: any) => ({
           product_id: p.product_id,
-          item_code: p.product?.code || "",
-          item_name: p.product?.name || "",
-          qty: p.quantity || 1, // Assuming API returns these, or defaults
-          rate: 0, // Not stored in backend table
-          amount: 0
+          item_code: p.item_code || "",
+          item_name: p.item_name || "",
+          qty: p.qty || 1,
+          rate: p.rate || 0,
+          amount: p.amount || 0,
+          description: p.description || ""
         }));
 
         setForm({
@@ -113,7 +114,7 @@ export default function OpportunityForm() {
           expected_closing: item.expected_closing ? item.expected_closing.split('T')[0] : "",
           next_contact_date: item.next_contact_date ? item.next_contact_date.split('T')[0] : "",
           with_items: Boolean(item.with_items) || mappedItems.length > 0,
-          items: mappedItems.length > 0 ? mappedItems : (item.items || []) // Fallback to item.items if loaded via relation
+          items: mappedItems.length > 0 ? mappedItems : (item.items || [])
         });
       }).finally(() => setLoading(false));
     }
@@ -229,37 +230,17 @@ export default function OpportunityForm() {
       const { status, source, industry, owner, lead, customer, contact, prospect, items, with_items, ...cleanForm } = form;
 
       const payload: Record<string, any> = { ...cleanForm };
-      // Explicitly include opportunity_lost_reasons and with_items
+      // Explicitly include items and opportunity_lost_reasons and with_items
       if (form.opportunity_lost_reasons) payload.opportunity_lost_reasons = form.opportunity_lost_reasons;
       payload.with_items = items && items.length > 0;
+      payload.items = items; // Send items to backend
 
       let opportunityId = Number(id);
 
       if (isEdit) {
         await opportunityApi.update(opportunityId, payload);
       } else {
-        const res = await opportunityApi.create(payload);
-        opportunityId = res.id;
-      }
-
-      // 2. Save Opportunity Products
-      if (items && items.length > 0) {
-        // We use a loop as requested. 
-        // Note: For 'Edit', this might duplicate items if backend doesn't handle it.
-        // ideally backend should use sync(), but strictly following "POST /api/opportunity-products" for each item.
-        // We will try not to re-add existing ones if we could track them, but for this requirement we just POST.
-
-        for (const item of items) {
-          // Basic check to see if we should post. if it has an 'id' it might be existing, but the instructions say "Then for each item call POST".
-          // I will assume simple append for now or that backend ignores duplicates if constrained.
-          await opportunityProductApi.create({
-            opportunity_id: opportunityId,
-            product_id: item.product_id,
-            item_code: item.item_code,
-            quantity: item.qty,
-            price: item.rate // Mapping rate to price
-          });
-        }
+        await opportunityApi.create(payload);
       }
 
       Swal.fire("Success", "Opportunity saved successfully!", "success");

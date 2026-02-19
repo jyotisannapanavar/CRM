@@ -2,8 +2,9 @@ import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { opportunityApi, statusApi, opportunityTypeApi, opportunityStageApi } from "@/services/api";
 import type { Opportunity, Status, OpportunityType, OpportunityStage } from "@/types";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye } from "lucide-react";
 import Swal from "sweetalert2";
+import OpportunityDetailsModal from "@/components/OpportunityDetailsModal";
 
 export default function OpportunityList() {
   const [items, setItems] = useState<Opportunity[]>([]);
@@ -16,6 +17,7 @@ export default function OpportunityList() {
   const [statuses, setStatuses] = useState<Status[]>([]);
   const [types, setTypes] = useState<OpportunityType[]>([]);
   const [stages, setStages] = useState<OpportunityStage[]>([]);
+  const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -146,6 +148,7 @@ export default function OpportunityList() {
                     <td>{item.expected_closing || "—"}</td>
                     {/* <td className="text-end">{item.currency || "$"}{item.opportunity_amount?.toLocaleString() || "0"}</td> */}
                     <td className="text-end">
+                      <button className="btn btn-sm btn-icon btn-outline-info me-1" title="View" onClick={() => setSelectedOpportunity(item)}><Eye size={14} /></button>
                       <Link to={`/opportunities/${item.id}/edit`} className="btn btn-sm btn-icon btn-outline-primary me-1" title="Edit"><Pencil size={14} /></Link>
                       <button className="btn btn-sm btn-icon btn-outline-danger" title="Delete" onClick={() => handleDelete(item.id)}><Trash2 size={14} /></button>
                     </td>
@@ -155,6 +158,9 @@ export default function OpportunityList() {
             </tbody>
           </table>
         </div>
+      )}
+      {selectedOpportunity && (
+        <OpportunityDetailsModal opportunity={selectedOpportunity} onClose={() => setSelectedOpportunity(null)} />
       )}
     </div>
   );

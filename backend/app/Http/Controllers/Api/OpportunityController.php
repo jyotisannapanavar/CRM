@@ -140,11 +140,11 @@ class OpportunityController extends Controller
             'currency' => 'nullable|string|max:10',
             'opportunity_amount' => 'nullable|numeric|min:0',
             'items' => 'nullable|array',
-            'items.*.item_code' => 'required_with:items|string|max:255',
+            'items.*.item_code' => 'nullable:items|string|max:255',
             'items.*.item_name' => 'nullable|string|max:255',
-            'items.*.qty' => 'required_with:items|numeric|min:0',
-            'items.*.rate' => 'required_with:items|numeric|min:0',
-            'items.*.amount' => 'required_with:items|numeric|min:0',
+            'items.*.qty' => 'nullable:items|numeric|min:0',
+            'items.*.rate' => 'nullable:items|numeric|min:0',
+            'items.*.amount' => 'nullable:items|numeric|min:0',
             'contact_person' => 'nullable|string|max:255',
             'contact_email' => 'nullable|email|max:255',
             'contact_mobile' => 'nullable|string|max:20',
@@ -220,4 +220,32 @@ class OpportunityController extends Controller
             ->update(['status_id' => $validated['status_id']]);
         return response()->json(['updated' => $count]);
     }
+
+    public function getProducts(int $id): JsonResponse
+    {
+        $opportunity = Opportunity::findOrFail($id);
+        
+        // Join opportunity_products with products to get details
+        $products = \Illuminate\Support\Facades\DB::table('opportunity_products')
+            ->join('products', 'opportunity_products.product_id', '=', 'products.id')
+            ->where('opportunity_products.opportunity_id', $id)
+            ->whereNull('opportunity_products.deleted_at')
+            ->select(
+                'opportunity_products.id as id',
+                'opportunity_products.opportunity_id',
+                'opportunity_products.product_id',
+                'products.code as item_code',
+                'products.name as item_name',
+                'products.category_id',
+                'products.quantity as qty', 
+                \Illuminate\Support\Facades\DB::raw('0 as price'), 
+                \Illuminate\Support\Facades\DB::raw('0 as rate'),
+                \Illuminate\Support\Facades\DB::raw('0 as amount')
+            )
+            ->get();
+
+        return response()->json($products);
+    }
+
+    
 }
