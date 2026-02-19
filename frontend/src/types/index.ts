@@ -478,3 +478,8 @@ export interface SalesTaskDetail {
   created_at: string;
   updated_at: string;
 }
+
+export interface EnumOption {
+  value: string;
+  label: string;
+}
