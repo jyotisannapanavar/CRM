@@ -69,6 +69,7 @@ class OpportunityController extends Controller
             'currency' => 'nullable|string|max:10',
             'opportunity_amount' => 'nullable|numeric|min:0',
             'items' => 'nullable|array',
+            'items.*.product_id' => 'required_with:items|integer|exists:products,id',
             'items.*.item_code' => 'required_with:items|string|max:255',
             'items.*.item_name' => 'nullable|string|max:255',
             'items.*.qty' => 'required_with:items|numeric|min:0',
@@ -89,7 +90,10 @@ class OpportunityController extends Controller
         $opportunity = Opportunity::create($opportunityData);
 
         if (!empty($validated['items'])) {
-            $opportunity->items()->createMany($validated['items']);
+            $itemsToSync = collect($validated['items'])->map(function ($item) {
+                return ['product_id' => $item['product_id']];
+            })->toArray();
+            $opportunity->items()->createMany($itemsToSync);
         }
 
         // Save lost reason if status is "Lost"
@@ -140,6 +144,7 @@ class OpportunityController extends Controller
             'currency' => 'nullable|string|max:10',
             'opportunity_amount' => 'nullable|numeric|min:0',
             'items' => 'nullable|array',
+            'items.*.product_id' => 'required_with:items|integer|exists:products,id',
             'items.*.item_code' => 'nullable:items|string|max:255',
             'items.*.item_name' => 'nullable|string|max:255',
             'items.*.qty' => 'nullable:items|numeric|min:0',
@@ -161,9 +166,14 @@ class OpportunityController extends Controller
         $opportunity->update($opportunityData);
 
         if (array_key_exists('items', $validated)) {
+            // Filter items to only include fields present in opportunity_products table
+            $itemsToSync = collect($validated['items'])->map(function ($item) {
+                return ['product_id' => $item['product_id']];
+            })->toArray();
+
             $opportunity->items()->delete();
-            if (!empty($validated['items'])) {
-                $opportunity->items()->createMany($validated['items']);
+            if (!empty($itemsToSync)) {
+                $opportunity->items()->createMany($itemsToSync);
             }
         }
 
@@ -224,7 +234,7 @@ class OpportunityController extends Controller
     public function getProducts(int $id): JsonResponse
     {
         $opportunity = Opportunity::findOrFail($id);
-        
+
         // Join opportunity_products with products to get details
         $products = \Illuminate\Support\Facades\DB::table('opportunity_products')
             ->join('products', 'opportunity_products.product_id', '=', 'products.id')
@@ -237,8 +247,8 @@ class OpportunityController extends Controller
                 'products.code as item_code',
                 'products.name as item_name',
                 'products.category_id',
-                'products.quantity as qty', 
-                \Illuminate\Support\Facades\DB::raw('0 as price'), 
+                'products.quantity as qty',
+                \Illuminate\Support\Facades\DB::raw('0 as price'),
                 \Illuminate\Support\Facades\DB::raw('0 as rate'),
                 \Illuminate\Support\Facades\DB::raw('0 as amount')
             )
@@ -246,6 +256,4 @@ class OpportunityController extends Controller
 
         return response()->json($products);
     }
-
-    
 }
