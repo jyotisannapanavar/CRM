@@ -19,7 +19,7 @@ class OpportunityController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('party_name', 'like', "%{$search}%")
-                  ->orWhere('company_name', 'like', "%{$search}%");
+                    ->orWhere('company_name', 'like', "%{$search}%");
             });
         }
 
@@ -36,7 +36,7 @@ class OpportunityController extends Controller
         }
 
         $opportunities = $query->orderBy('created_at', 'desc')
-                               ->paginate($request->per_page ?? 15);
+            ->paginate($request->per_page ?? 15);
 
         return response()->json($opportunities);
     }
@@ -200,11 +200,11 @@ class OpportunityController extends Controller
 
         $opportunity = Opportunity::findOrFail($id);
         $opportunity->lostReasons()->sync($validated['lost_reason_ids']);
-        
+
         if (!empty($validated['competitor_ids'])) {
             $opportunity->competitors()->sync($validated['competitor_ids']);
         }
-        
+
         return response()->json($opportunity->fresh());
     }
 
@@ -217,7 +217,7 @@ class OpportunityController extends Controller
         ]);
 
         $count = Opportunity::whereIn('id', $validated['ids'])
-                            ->update(['status_id' => $validated['status_id']]);
+            ->update(['status_id' => $validated['status_id']]);
         return response()->json(['updated' => $count]);
     }
 }

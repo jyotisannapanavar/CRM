@@ -107,7 +107,7 @@ export default function OpportunityList() {
                 <th>Type</th>
                 <th>Probability</th>
                 <th>Expected Close</th>
-                <th className="text-end">Amount</th>
+                {/* <th className="text-end">Amount</th> */}
                 <th className="text-end">Actions</th>
               </tr>
             </thead>
@@ -144,7 +144,7 @@ export default function OpportunityList() {
                     <td>{stageName}</td>
                     <td>{item.probability !== null ? `${item.probability}%` : "—"}</td>
                     <td>{item.expected_closing || "—"}</td>
-                    <td className="text-end">{item.currency || "$"}{item.opportunity_amount?.toLocaleString() || "0"}</td>
+                    {/* <td className="text-end">{item.currency || "$"}{item.opportunity_amount?.toLocaleString() || "0"}</td> */}
                     <td className="text-end">
                       <Link to={`/opportunities/${item.id}/edit`} className="btn btn-sm btn-icon btn-outline-primary me-1" title="Edit"><Pencil size={14} /></Link>
                       <button className="btn btn-sm btn-icon btn-outline-danger" title="Delete" onClick={() => handleDelete(item.id)}><Trash2 size={14} /></button>

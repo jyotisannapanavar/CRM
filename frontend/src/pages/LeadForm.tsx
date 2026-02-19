@@ -326,7 +326,7 @@ export default function LeadForm() {
         </div>
 
         {/* Qualification */}
-        <div className="form-container mb-4">
+        {/* <div className="form-container mb-4">
           <h5 className="mb-3 border-bottom pb-2">Qualification</h5>
           <div className="row g-3">
             <div className="col-md-4">
@@ -348,7 +348,7 @@ export default function LeadForm() {
               <input type="date" className="form-control" value={form.qualified_on?.toString() || ""} onChange={(e) => setField("qualified_on", e.target.value)} />
             </div>
           </div>
-        </div>
+        </div> */}
 
         <div className="d-flex gap-2">
           <button type="submit" className="btn btn-primary">Save</button>

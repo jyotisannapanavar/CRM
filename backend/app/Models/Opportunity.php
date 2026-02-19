@@ -14,6 +14,30 @@ class Opportunity extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected static function booted()
+    {
+        static::creating(function ($opportunity) {
+            $year = now()->year;
+            $prefix = "CRM-OPP-{$year}-";
+
+            // Find the last opportunity created this year to determine the next sequence
+            $lastOpportunity = self::where('naming_series', 'like', "{$prefix}%")
+                ->orderBy('id', 'desc')
+                ->first();
+
+            if ($lastOpportunity) {
+                // Extract the sequence number
+                $lastSequence = intval(substr($lastOpportunity->naming_series, -5));
+                $nextSequence = $lastSequence + 1;
+            } else {
+                $nextSequence = 1;
+            }
+
+            // Generate the new series
+            $opportunity->naming_series = $prefix . str_pad($nextSequence, 5, '0', STR_PAD_LEFT);
+        });
+    }
+
     protected $fillable = [
         'naming_series',
         'opportunity_type_id',
@@ -54,8 +78,8 @@ class Opportunity extends Model
         'annual_revenue' => 'decimal:2',
         'opportunity_amount' => 'decimal:2',
         'probability' => 'decimal:2',
-        'expected_closing' => 'date',
-        'next_contact_date' => 'date',
+        'expected_closing' => 'date:Y-m-d',
+        'next_contact_date' => 'date:Y-m-d',
         'with_items' => 'boolean',
     ];
 
@@ -128,6 +152,6 @@ class Opportunity extends Model
 
     public function items(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(OpportunityItem::class);
+        return $this->hasMany(OpportunityProduct::class);
     }
 }

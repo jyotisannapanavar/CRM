@@ -347,6 +347,7 @@ export const salesTaskApi = {
   delete: (id: number) => api.delete(`/sales-tasks/${id}`),
 };
 
+
 export const salesTaskDetailApi = {
   list: (params?: Record<string, string | number>) =>
     api.get<SalesTaskDetail[]>("/sales-task-details", { params }).then((r) => r.data),
@@ -356,5 +357,15 @@ export const salesTaskDetailApi = {
   update: (id: number, data: Partial<SalesTaskDetail>) =>
     api.put<SalesTaskDetail>(`/sales-task-details/${id}`, data).then((r) => r.data),
   delete: (id: number) => api.delete(`/sales-task-details/${id}`),
+};
+
+export const opportunityProductApi = {
+  list: (params?: Record<string, string | number>) =>
+    api.get<any[]>("/opportunity-products", { params }).then((r) => r.data),
+  create: (data: Record<string, any>) =>
+    api.post("/opportunity-products", data).then((r) => r.data),
+  update: (id: number, data: Record<string, any>) =>
+    api.put(`/opportunity-products/${id}`, data).then((r) => r.data),
+  delete: (id: number) => api.delete(`/opportunity-products/${id}`),
 };
 
