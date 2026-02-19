@@ -14,6 +14,30 @@ class Lead extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected static function booted()
+    {
+        static::creating(function ($lead) {
+            $year = now()->year;
+            $prefix = "CRM-LEAD-{$year}-";
+
+            // Find the last lead created this year to determine the next sequence
+            $lastLead = self::where('series', 'like', "{$prefix}%")
+                ->orderBy('id', 'desc')
+                ->first();
+
+            if ($lastLead) {
+                // Extract the sequence number
+                $lastSequence = intval(substr($lastLead->series, -5));
+                $nextSequence = $lastSequence + 1;
+            } else {
+                $nextSequence = 1;
+            }
+
+            // Generate the new series
+            $lead->series = $prefix . str_pad($nextSequence, 5, '0', STR_PAD_LEFT);
+        });
+    }
+
     protected $fillable = [
         'series',
         'salutation',

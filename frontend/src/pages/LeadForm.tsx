@@ -185,10 +185,7 @@ export default function LeadForm() {
         <div className="form-container mb-4">
           <h5 className="mb-3 border-bottom pb-2">Personal Information</h5>
           <div className="row g-3">
-            <div className="col-md-2">
-              <label className="form-label">Series</label>
-              <input className="form-control" value={form.series?.toString() || ""} onChange={(e) => setField("series", e.target.value)} />
-            </div>
+
             <div className="col-md-2">
               <label className="form-label">Salutation</label>
               <select className="form-select" value={form.salutation?.toString() || ""} onChange={(e) => setField("salutation", e.target.value)}>

@@ -206,6 +206,7 @@ export default function LeadList() {
           <table className="table table-hover mb-0">
             <thead className="table-light">
               <tr>
+                <th>Series</th>
                 <th>Name</th>
                 <th>Status</th>
                 <th>Source</th>
@@ -218,6 +219,11 @@ export default function LeadList() {
             <tbody>
               {leads.map((lead) => (
                 <tr key={lead.id}>
+                  <td>
+                    <Link to={`/leads/${lead.id}/edit`} className="text-decoration-none fw-bold text-primary">
+                      {lead.series || lead.id}
+                    </Link>
+                  </td>
                   <td className="fw-medium">
                     {lead.salutation} {lead.first_name} {lead.middle_name} {lead.last_name}
                   </td>
@@ -261,11 +267,14 @@ export default function LeadList() {
                       <div key={lead.id} className={`card mb-3 border-0 border-start border-4 shadow-sm`} style={{ borderLeftColor: `var(--bs-${color}) !important` }}>
                         <div className="card-body p-3">
                           <div className="d-flex justify-content-between align-items-start mb-2">
-                            <h6 className="card-title mb-0 fw-bold">
-                              <Link to={`/leads/${lead.id}/edit`} className="text-decoration-none text-dark">
-                                {lead.salutation} {lead.first_name} {lead.last_name}
-                              </Link>
-                            </h6>
+                            <div>
+                              <div className="text-muted small mb-1">{lead.series || lead.id}</div>
+                              <h6 className="card-title mb-0 fw-bold">
+                                <Link to={`/leads/${lead.id}/edit`} className="text-decoration-none text-dark">
+                                  {lead.salutation} {lead.first_name} {lead.last_name}
+                                </Link>
+                              </h6>
+                            </div>
                             <LeadActionsMenu lead={lead} onView={setSelectedLead} onDelete={handleDelete} />
                           </div>
                           {lead.company_name && <p className="small text-muted mb-1">{lead.company_name}</p>}

@@ -19,10 +19,10 @@ class LeadController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('company_name', 'like', "%{$search}%")
-                  ->orWhere('mobile_no', 'like', "%{$search}%");
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('company_name', 'like', "%{$search}%")
+                    ->orWhere('mobile_no', 'like', "%{$search}%");
             });
         }
 
@@ -39,7 +39,7 @@ class LeadController extends Controller
         }
 
         $leads = $query->orderBy('created_at', 'desc')
-                       ->paginate($request->per_page ?? 15);
+            ->paginate($request->per_page ?? 15);
 
         return response()->json($leads);
     }
