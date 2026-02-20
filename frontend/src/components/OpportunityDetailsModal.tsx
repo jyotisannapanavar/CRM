@@ -120,7 +120,7 @@ export default function OpportunityDetailsModal({ opportunity, onClose }: Opport
                             </div>
 
                             {/* Items Section */}
-                            {/* <div className="col-12">
+                            <div className="col-12">
                                 <h6 className="fw-bold mb-3 text-uppercase small text-muted border-top pt-3">
                                     <List size={16} className="me-1" /> Items
                                 </h6>
@@ -154,7 +154,7 @@ export default function OpportunityDetailsModal({ opportunity, onClose }: Opport
                                 ) : (
                                     <p className="text-muted small">No items added to this opportunity.</p>
                                 )}
-                            </div> */}
+                            </div>
 
                             {opportunity.next_contact_date && (
                                 <div className="col-12">
