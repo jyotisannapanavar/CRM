@@ -70,11 +70,11 @@ class OpportunityController extends Controller
             'opportunity_amount' => 'nullable|numeric|min:0',
             'items' => 'nullable|array',
             'items.*.product_id' => 'required_with:items|integer|exists:products,id',
-            'items.*.item_code' => 'required_with:items|string|max:255',
+            'items.*.item_code' => 'nullable:items|string|max:255',
             'items.*.item_name' => 'nullable|string|max:255',
-            'items.*.qty' => 'required_with:items|numeric|min:0',
-            'items.*.rate' => 'required_with:items|numeric|min:0',
-            'items.*.amount' => 'required_with:items|numeric|min:0',
+            'items.*.qty' => 'nullable:items|numeric|min:0',
+            'items.*.rate' => 'nullable:items|numeric|min:0',
+            'items.*.amount' => 'nullable:items|numeric|min:0',
             'contact_person' => 'nullable|string|max:255',
             'contact_email' => 'nullable|email|max:255',
             'contact_mobile' => 'nullable|string|max:20',
@@ -91,7 +91,12 @@ class OpportunityController extends Controller
 
         if (!empty($validated['items'])) {
             $itemsToSync = collect($validated['items'])->map(function ($item) {
-                return ['product_id' => $item['product_id']];
+                return [
+                    'product_id' => $item['product_id'],
+                    'quantity'   => $item['qty'] ?? 1,
+                    'rate'       => $item['rate'] ?? 0,
+                    'amount'     => $item['amount'] ?? 0,
+                ];
             })->toArray();
             $opportunity->items()->createMany($itemsToSync);
         }
@@ -166,9 +171,13 @@ class OpportunityController extends Controller
         $opportunity->update($opportunityData);
 
         if (array_key_exists('items', $validated)) {
-            // Filter items to only include fields present in opportunity_products table
             $itemsToSync = collect($validated['items'])->map(function ($item) {
-                return ['product_id' => $item['product_id']];
+                return [
+                    'product_id' => $item['product_id'],
+                    'quantity'   => $item['qty'] ?? 1,
+                    'rate'       => $item['rate'] ?? 0,
+                    'amount'     => $item['amount'] ?? 0,
+                ];
             })->toArray();
 
             $opportunity->items()->delete();
@@ -247,10 +256,10 @@ class OpportunityController extends Controller
                 'products.code as item_code',
                 'products.name as item_name',
                 'products.category_id',
-                'products.quantity as qty',
-                \Illuminate\Support\Facades\DB::raw('0 as price'),
-                \Illuminate\Support\Facades\DB::raw('0 as rate'),
-                \Illuminate\Support\Facades\DB::raw('0 as amount')
+                'opportunity_products.quantity as qty',
+                'opportunity_products.rate',
+                'opportunity_products.amount',
+                \Illuminate\Support\Facades\DB::raw('0 as price')
             )
             ->get();
 

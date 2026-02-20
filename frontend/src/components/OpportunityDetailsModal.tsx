@@ -35,6 +35,10 @@ export default function OpportunityDetailsModal({ opportunity, onClose }: Opport
         return new Date(dateString).toLocaleDateString();
     };
 
+    // Compute total from loaded items as fallback when opportunity_amount is not set
+    const itemsTotal = items.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const displayAmount = opportunity.opportunity_amount ?? (itemsTotal > 0 ? itemsTotal : null);
+
     const partyName = (() => {
         if (opportunity.opportunity_from === 'lead' && opportunity.lead) {
             return `${opportunity.lead.first_name} ${opportunity.lead.last_name || ''}`.trim();
@@ -62,9 +66,23 @@ export default function OpportunityDetailsModal({ opportunity, onClose }: Opport
                             </div>
                             <div>
                                 <h4 className="mb-1">{opportunity.naming_series || opportunity.id}</h4>
-                                <div className="text-muted d-flex align-items-center gap-3">
-                                    <span className="text-capitalize"><Briefcase size={14} className="me-1" />{opportunity.opportunity_from}</span>
-                                    <span><Building size={14} className="me-1" />{partyName}</span>
+                                <div className="text-muted d-flex align-items-center gap-2 flex-wrap mt-1">
+                                    <span className="badge bg-secondary text-capitalize">
+                                        <Briefcase size={11} className="me-1" />{opportunity.opportunity_from}
+                                    </span>
+                                    {opportunity.opportunity_type && (
+                                        <span className="badge bg-primary">
+                                            Type: {opportunity.opportunity_type.name}
+                                        </span>
+                                    )}
+                                    {opportunity.source && (
+                                        <span className="badge bg-info text-dark">
+                                            Source: {opportunity.source.name}
+                                        </span>
+                                    )}
+                                    <span className="text-muted small">
+                                        <Building size={13} className="me-1" />{partyName}
+                                    </span>
                                 </div>
                             </div>
                             <div className="ms-auto text-end">
@@ -86,8 +104,8 @@ export default function OpportunityDetailsModal({ opportunity, onClose }: Opport
                                         <span className="fw-medium">{opportunity.opportunity_type?.name || "-"}</span>
                                     </div>
                                     <div className="d-flex">
-                                        <span className="text-muted" style={{ minWidth: "120px" }}>Source:</span>
-                                        <span className="fw-medium">{opportunity.source?.name || "-"}</span>
+                                        <span className="text-muted" style={{ minWidth: "120px" }}>Status:</span>
+                                        <span className="fw-medium">{opportunity.status?.status_name || "-"}</span>
                                     </div>
                                     <div className="d-flex">
                                         <span className="text-muted" style={{ minWidth: "120px" }}>Stage:</span>
@@ -105,17 +123,22 @@ export default function OpportunityDetailsModal({ opportunity, onClose }: Opport
                                 <h6 className="fw-bold mb-3 text-uppercase small text-muted">Details</h6>
                                 <div className="d-flex flex-column gap-2">
                                     <div className="d-flex">
-                                        <span className="text-muted" style={{ minWidth: "120px" }}><Calendar size={14} className="me-1" /> Expected Close:</span>
+                                        <span className="text-muted" style={{ minWidth: "120px", marginRight:"20px"}}><Calendar size={14} className="me-1" /> Expected Close:</span>
                                         <span className="fw-medium">{formatDate(opportunity.expected_closing)}</span>
                                     </div>
-                                    <div className="d-flex">
+                                    <div className="d-flex align-items-start">
                                         <span className="text-muted" style={{ minWidth: "120px" }}><DollarSign size={14} className="me-1" /> Amount:</span>
-                                        <span className="fw-bold text-success">{formatCurrency(opportunity.opportunity_amount)}</span>
+                                        <div>
+                                            <span className="fw-bold text-success">{formatCurrency(displayAmount)}</span>
+                                            {!opportunity.opportunity_amount && itemsTotal > 0 && (
+                                                <div className="text-muted" style={{ fontSize: '0.72rem' }}>calculated from items</div>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="d-flex">
+                                    {/* <div className="d-flex">
                                         <span className="text-muted" style={{ minWidth: "120px" }}>Currency:</span>
                                         <span className="fw-medium">{opportunity.currency || "INR"}</span>
-                                    </div>
+                                    </div> */}
                                 </div>
                             </div>
 
@@ -134,7 +157,7 @@ export default function OpportunityDetailsModal({ opportunity, onClose }: Opport
                                                     <th>Item Code</th>
                                                     <th>Product Name</th>
                                                     <th className="text-end">Qty</th>
-                                                    <th className="text-end">Rate</th>
+                                                    {/* <th className="text-end">Rate</th> */}
                                                     <th className="text-end">Amount</th>
                                                 </tr>
                                             </thead>
@@ -144,7 +167,7 @@ export default function OpportunityDetailsModal({ opportunity, onClose }: Opport
                                                         <td>{item.item_code || "-"}</td>
                                                         <td>{item.item_name || "-"}</td>
                                                         <td className="text-end">{item.qty}</td>
-                                                        <td className="text-end">{formatCurrency(item.rate)}</td>
+                                                        {/* <td className="text-end">{formatCurrency(item.rate)}</td> */}
                                                         <td className="text-end">{formatCurrency(item.amount)}</td>
                                                     </tr>
                                                 ))}

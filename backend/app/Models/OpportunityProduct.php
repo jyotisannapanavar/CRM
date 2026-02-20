@@ -17,6 +17,8 @@ class OpportunityProduct extends Model
         'opportunity_id',
         'product_id',
         'quantity',
+        'rate',
+        'amount',
     ];
 
     public function opportunity(): BelongsTo
