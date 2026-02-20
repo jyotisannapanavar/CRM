@@ -279,7 +279,8 @@ export interface Product {
   long_description: string | null;
   slug: string | null;
   stock: number;
-  quantity: number;
+  rate: number;
+  amount: number;
   created_at: string;
   updated_at: string;
 }

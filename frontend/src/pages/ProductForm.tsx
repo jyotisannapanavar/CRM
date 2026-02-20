@@ -14,12 +14,12 @@ export default function ProductForm() {
     const [form, setForm] = useState<Record<string, string | number | null>>({
         category_id: "",
         name: "",
-        code: "",
         description: "",
         long_description: "",
         slug: "",
         stock: 0,
-        quantity: 0,
+        rate: 0,
+        amount: 0,
     });
 
     useEffect(() => {
@@ -35,12 +35,12 @@ export default function ProductForm() {
                     setForm({
                         category_id: product.category_id || "",
                         name: product.name || "",
-                        code: product.code || "",
                         description: product.description || "",
                         long_description: product.long_description || "",
                         slug: product.slug || "",
                         stock: product.stock ?? 0,
-                        quantity: product.quantity ?? 0,
+                        rate: product.rate ?? 0,
+                        amount: product.amount ?? 0,
                     });
                 })
                 .finally(() => setLoading(false));
@@ -104,7 +104,7 @@ export default function ProductForm() {
                 <div className="form-container mb-4">
                     <h5 className="mb-3 border-bottom pb-2">Basic Information</h5>
                     <div className="row g-3">
-                        <div className="col-md-6">
+                        <div className="col-md-9">
                             <label className="form-label">
                                 Product Name <span className="text-danger">*</span>
                             </label>
@@ -113,15 +113,6 @@ export default function ProductForm() {
                                 value={form.name?.toString() || ""}
                                 onChange={(e) => setField("name", e.target.value)}
                                 required
-                            />
-                        </div>
-                        <div className="col-md-3">
-                            <label className="form-label">Product Code</label>
-                            <input
-                                className="form-control"
-                                value={form.code?.toString() || ""}
-                                onChange={(e) => setField("code", e.target.value)}
-                                placeholder="e.g. PRD-001"
                             />
                         </div>
                         <div className="col-md-3">
@@ -155,7 +146,7 @@ export default function ProductForm() {
                 <div className="form-container mb-4">
                     <h5 className="mb-3 border-bottom pb-2">Inventory</h5>
                     <div className="row g-3">
-                        <div className="col-md-6">
+                        <div className="col-md-4">
                             <label className="form-label">Stock</label>
                             <input
                                 type="number"
@@ -165,14 +156,26 @@ export default function ProductForm() {
                                 min={0}
                             />
                         </div>
-                        <div className="col-md-6">
-                            <label className="form-label">Quantity</label>
+                        <div className="col-md-4">
+                            <label className="form-label">Rate</label>
                             <input
                                 type="number"
                                 className="form-control"
-                                value={form.quantity?.toString() || "0"}
-                                onChange={(e) => setField("quantity", Number(e.target.value))}
+                                value={form.rate?.toString() || "0"}
+                                onChange={(e) => setField("rate", Number(e.target.value))}
                                 min={0}
+                                step="0.01"
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <label className="form-label">Amount</label>
+                            <input
+                                type="number"
+                                className="form-control"
+                                value={form.amount?.toString() || "0"}
+                                onChange={(e) => setField("amount", Number(e.target.value))}
+                                min={0}
+                                step="0.01"
                             />
                         </div>
                     </div>

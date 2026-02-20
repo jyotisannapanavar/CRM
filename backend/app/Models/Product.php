@@ -19,8 +19,21 @@ class Product extends Model
         'long_description',
         'slug',
         'stock',
-        'quantity',
+        'rate',
+        'amount',
     ];
+
+    /**
+     * Auto-generate a unique product code after creating.
+     */
+    protected static function booted(): void
+    {
+        static::created(function (Product $product) {
+            // Format: PRD-00001 (zero-padded to 5 digits)
+            $product->code = 'PRD-' . str_pad($product->id, 5, '0', STR_PAD_LEFT);
+            $product->saveQuietly();
+        });
+    }
 
     public function category(): BelongsTo
     {

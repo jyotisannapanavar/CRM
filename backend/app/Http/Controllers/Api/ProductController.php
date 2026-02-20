@@ -20,12 +20,12 @@ class ProductController extends Controller
         $validated = $request->validate([
             'category_id' => 'nullable|integer|exists:product_categories,id',
             'name' => 'required|string|max:255',
-            'code' => 'nullable|string|max:255|unique:products',
             'description' => 'nullable|string',
             'long_description' => 'nullable|string',
             'slug' => 'nullable|string|max:255|unique:products',
             'stock' => 'nullable|integer|min:0',
-            'quantity' => 'nullable|integer|min:0',
+            'rate' => 'nullable|numeric|min:0',
+            'amount' => 'nullable|numeric|min:0',
         ]);
 
         $product = Product::create($validated);
@@ -50,7 +50,8 @@ class ProductController extends Controller
             'long_description' => 'nullable|string',
             'slug' => 'nullable|string|max:255|unique:products,slug,' . $id,
             'stock' => 'nullable|integer|min:0',
-            'quantity' => 'nullable|integer|min:0',
+            'rate' => 'nullable|numeric|min:0',
+            'amount' => 'nullable|numeric|min:0',
         ]);
         $product->update($validated);
         $product->load('category');
