@@ -46,6 +46,8 @@ export default function ProductList() {
     }, [fetchProducts]);
 
     const viewProduct = async (product: Product) => {
+
+        const fmt = (n: number) => Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         await Swal.fire({
             title: product.name,
             width: 650,
@@ -56,8 +58,8 @@ export default function ProductList() {
                         <tr><td class="fw-semibold">Category</td><td>${product.category?.name || "—"}</td></tr>
                         <tr><td class="fw-semibold">Slug</td><td>${product.slug || "—"}</td></tr>
                         <tr><td class="fw-semibold">Stock</td><td>${product.stock}</td></tr>
-                        <tr><td class="fw-semibold">Rate</td><td>${product.rate}</td></tr>
-                        <tr><td class="fw-semibold">Amount</td><td>${product.amount}</td></tr>
+                        <tr><td class="fw-semibold">Rate</td><td>₹${fmt(product.rate)}</td></tr>
+                        <tr><td class="fw-semibold">Amount</td><td>₹${fmt(product.amount)}</td></tr>
                     </table>
                     ${product.description ? `<div class="mt-3"><h6 class="fw-semibold border-bottom pb-1">Description</h6><p class="small text-muted">${product.description}</p></div>` : ""}
                     ${product.long_description ? `<div class="mt-3"><h6 class="fw-semibold border-bottom pb-1">Long Description</h6><p class="small text-muted">${product.long_description}</p></div>` : ""}
@@ -193,8 +195,8 @@ export default function ProductList() {
                                         )}
                                     </td>
                                     <td>{product.stock}</td>
-                                    <td>{product.rate}</td>
-                                    <td>{product.amount}</td>
+                                    <td>₹{Number(product.rate).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                    <td>₹{Number(product.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                     <td className="text-end">
                                         <button
                                             className="btn btn-sm btn-outline-secondary me-1"

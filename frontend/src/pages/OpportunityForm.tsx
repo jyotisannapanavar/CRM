@@ -130,6 +130,13 @@ export default function OpportunityForm() {
   );
 
   const handleProductSelect = (product: Product) => {
+    const productRate = product.rate ?? 0;
+    const productAmount = product.amount ?? 0;
+    // When rate is 0, use the stored amount as the effective unit price
+    // so that qty × rate calculation works correctly
+    const rate = productRate > 0 ? productRate : productAmount;
+    const qty = Number(newItem.qty) || 1;
+    const amount = rate * qty;
     setNewItem({
       ...newItem,
       product_id: product.id,
@@ -137,7 +144,8 @@ export default function OpportunityForm() {
       item_name: product.name,
       category_id: product.category_id,
       description: product.description || "",
-      rate: 0, // Product model has no price
+      rate: rate,
+      amount: amount,
       is_new_product: false
     });
     setItemSearch(product.name);
@@ -451,12 +459,12 @@ export default function OpportunityForm() {
                       value={newItem.qty}
                       onChange={(e) => updateItemDetails('qty', e.target.value)} />
                   </div>
-                  {/* <div className="col-md-2">
+                  <div className="col-md-2">
                     <label className="form-label">Rate (INR)</label>
                     <input type="number" className="form-control" min="0"
                       value={newItem.rate}
                       onChange={(e) => updateItemDetails('rate', e.target.value)} />
-                  </div> */}
+                  </div>
                   <div className="col-md-2">
                     <label className="form-label">Amount (INR)</label>
                     <input type="number" className="form-control" value={newItem.amount} onChange={(e) => updateItemDetails('amount', e.target.value)} />

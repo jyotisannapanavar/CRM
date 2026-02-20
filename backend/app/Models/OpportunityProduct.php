@@ -16,6 +16,7 @@ class OpportunityProduct extends Model
     protected $fillable = [
         'opportunity_id',
         'product_id',
+        'quantity',
     ];
 
     public function opportunity(): BelongsTo

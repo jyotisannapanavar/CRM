@@ -26,6 +26,7 @@ class OpportunityProductController extends Controller
         $validated = $request->validate([
             'opportunity_id' => 'required|exists:opportunities,id',
             'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1',
         ]);
 
         $item = OpportunityProduct::create($validated);
@@ -45,6 +46,7 @@ class OpportunityProductController extends Controller
         $validated = $request->validate([
             'opportunity_id' => 'sometimes|required|exists:opportunities,id',
             'product_id' => 'sometimes|required|exists:products,id',
+            'quantity' => 'sometimes|required|integer|min:1',
         ]);
 
         $item->update($validated);

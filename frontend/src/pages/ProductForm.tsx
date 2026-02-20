@@ -18,7 +18,7 @@ export default function ProductForm() {
         long_description: "",
         slug: "",
         stock: 0,
-        rate: 0,
+        // rate: 0,
         amount: 0,
     });
 
@@ -39,7 +39,7 @@ export default function ProductForm() {
                         long_description: product.long_description || "",
                         slug: product.slug || "",
                         stock: product.stock ?? 0,
-                        rate: product.rate ?? 0,
+                        // rate: product.rate ?? 0,
                         amount: product.amount ?? 0,
                     });
                 })
@@ -156,7 +156,7 @@ export default function ProductForm() {
                                 min={0}
                             />
                         </div>
-                        <div className="col-md-4">
+                        {/* <div className="col-md-4">
                             <label className="form-label">Rate</label>
                             <input
                                 type="number"
@@ -166,7 +166,7 @@ export default function ProductForm() {
                                 min={0}
                                 step="0.01"
                             />
-                        </div>
+                        </div> */}
                         <div className="col-md-4">
                             <label className="form-label">Amount</label>
                             <input
