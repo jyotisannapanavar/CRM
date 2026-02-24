@@ -310,6 +310,7 @@ export interface DashboardStats {
     new_last_30_days: number;
     by_status: Array<{ status: string; count: number }>;
     by_qualification: Array<{ qualification_status: string; count: number }>;
+    funnel: Array<{ stage: string; count: number }>;
   };
   opportunities: {
     total: number;
@@ -454,6 +455,7 @@ export interface TaskType {
 export interface SalesTask {
   id: number;
   task_source_id: number;
+  source_id: number | null;
   task_type_id: number;
   sales_assign_id: number | null;
   formatted_date?: string;
@@ -464,6 +466,17 @@ export interface SalesTask {
     name: string;
     email: string;
   };
+  source_detail?: {
+    id: number;
+    first_name?: string;
+    last_name?: string;
+    email?: string;
+    company_name?: string;
+    name?: string;
+    naming_series?: string;
+    party_name?: string;
+    opportunity_amount?: number;
+  } | null;
   created_at: string;
   updated_at: string;
 }

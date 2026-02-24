@@ -26,7 +26,7 @@ class SalesTaskDetailController extends Controller
             'sales_task_id' => 'nullable|exists:sales_tasks,id',
             'date' => 'required|date',
             'time' => 'required',
-            'description' => 'required|string',
+            'description' => 'nullable|string',
             'status' => 'required|in:Open,In Progress,Closed',
         ]);
 
