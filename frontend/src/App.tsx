@@ -1,5 +1,8 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Layout from "./components/Layout";
+import LoginPage from "./pages/LoginPage";
+import SignUpPage from "./pages/SignUpPage";
 import Dashboard from "./pages/Dashboard";
 import LeadList from "./pages/LeadList";
 import LeadForm from "./pages/LeadForm";
@@ -34,55 +37,69 @@ import SalesTaskForm from "./pages/SalesTaskForm";
 import SalesTaskDetail from "./pages/SalesTaskDetail";
 import SalesTaskDetailList from "./pages/SalesTaskDetailList";
 
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+
+  if (loading) return <div className="text-center py-5">Checking session...</div>;
+  if (!user) return <Navigate to="/login" />;
+
+  return <>{children}</>;
+}
+
 export default function App() {
   return (
-    <Routes>
-      <Route element={<Layout />}>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/customers" element={<CustomerList />} />
-        <Route path="/customers/new" element={<CustomerForm />} />
-        <Route path="/customers/:id/edit" element={<CustomerForm />} />
-        <Route path="/leads" element={<LeadList />} />
-        <Route path="/leads/new" element={<LeadForm />} />
-        <Route path="/leads/:id/edit" element={<LeadForm />} />
-        <Route path="/opportunities" element={<OpportunityList />} />
-        <Route path="/opportunities/new" element={<OpportunityForm />} />
-        <Route path="/opportunities/:id/edit" element={<OpportunityForm />} />
-        <Route path="/prospects" element={<ProspectList />} />
-        <Route path="/prospects/new" element={<ProspectForm />} />
-        <Route path="/prospects/:id/edit" element={<ProspectForm />} />
-        <Route path="/campaigns" element={<CampaignList />} />
-        <Route path="/campaigns/new" element={<CampaignForm />} />
-        <Route path="/campaigns/:id/edit" element={<CampaignForm />} />
-        <Route path="/sources" element={<SourceList />} />
-        <Route path="/sources/new" element={<SourceForm />} />
-        <Route path="/sources/:id/edit" element={<SourceForm />} />
-        <Route path="/sales-tasks" element={<SalesTaskList />} />
-        <Route path="/sales-tasks/new" element={<SalesTaskForm />} />
-        <Route path="/sales-tasks/:id" element={<SalesTaskDetail />} />
-        <Route path="/sales-tasks/:id/edit" element={<SalesTaskForm />} />
+    <AuthProvider>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
 
-        <Route path="/sales-task-details" element={<SalesTaskDetailList />} />
-        <Route path="/appointments" element={<AppointmentList />} />
-        <Route path="/appointments/new" element={<AppointmentForm />} />
-        <Route path="/appointments/:id/edit" element={<AppointmentForm />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/statuses" element={<StatusList />} />
-        <Route path="/request-types" element={<RequestTypeList />} />
-        <Route path="/industry-types" element={<IndustryTypeList />} />
-        <Route path="/opportunity-stages" element={<OpportunityStageList />} />
-        <Route path="/opportunity-types" element={<OpportunityTypeList />} />
-        <Route path="/opportunity-lost-reasons" element={<OpportunityLostReasonList />} />
-        <Route path="/territories" element={<TerritoryList />} />
-        <Route path="/product-categories" element={<ProductCategoryList />} />
-        <Route path="/products" element={<ProductList />} />
+        <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/customers" element={<CustomerList />} />
+          <Route path="/customers/new" element={<CustomerForm />} />
+          <Route path="/customers/:id/edit" element={<CustomerForm />} />
+          <Route path="/leads" element={<LeadList />} />
+          <Route path="/leads/new" element={<LeadForm />} />
+          <Route path="/leads/:id/edit" element={<LeadForm />} />
+          <Route path="/opportunities" element={<OpportunityList />} />
+          <Route path="/opportunities/new" element={<OpportunityForm />} />
+          <Route path="/opportunities/:id/edit" element={<OpportunityForm />} />
+          <Route path="/prospects" element={<ProspectList />} />
+          <Route path="/prospects/new" element={<ProspectForm />} />
+          <Route path="/prospects/:id/edit" element={<ProspectForm />} />
+          <Route path="/campaigns" element={<CampaignList />} />
+          <Route path="/campaigns/new" element={<CampaignForm />} />
+          <Route path="/campaigns/:id/edit" element={<CampaignForm />} />
+          <Route path="/sources" element={<SourceList />} />
+          <Route path="/sources/new" element={<SourceForm />} />
+          <Route path="/sources/:id/edit" element={<SourceForm />} />
+          <Route path="/sales-tasks" element={<SalesTaskList />} />
+          <Route path="/sales-tasks/new" element={<SalesTaskForm />} />
+          <Route path="/sales-tasks/:id" element={<SalesTaskDetail />} />
+          <Route path="/sales-tasks/:id/edit" element={<SalesTaskForm />} />
 
-        <Route path="/products/new" element={<ProductForm />} />
-        <Route path="/products/:id/edit" element={<ProductForm />} />
-        <Route path="/contacts" element={<ContactList />} />
-        <Route path="/contacts/new" element={<ContactForm />} />
-        <Route path="/contacts/:id/edit" element={<ContactForm />} />
-      </Route>
-    </Routes>
+          <Route path="/sales-task-details" element={<SalesTaskDetailList />} />
+          <Route path="/appointments" element={<AppointmentList />} />
+          <Route path="/appointments/new" element={<AppointmentForm />} />
+          <Route path="/appointments/:id/edit" element={<AppointmentForm />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/statuses" element={<StatusList />} />
+          <Route path="/request-types" element={<RequestTypeList />} />
+          <Route path="/industry-types" element={<IndustryTypeList />} />
+          <Route path="/opportunity-stages" element={<OpportunityStageList />} />
+          <Route path="/opportunity-types" element={<OpportunityTypeList />} />
+          <Route path="/opportunity-lost-reasons" element={<OpportunityLostReasonList />} />
+          <Route path="/territories" element={<TerritoryList />} />
+          <Route path="/product-categories" element={<ProductCategoryList />} />
+          <Route path="/products" element={<ProductList />} />
+
+          <Route path="/products/new" element={<ProductForm />} />
+          <Route path="/products/:id/edit" element={<ProductForm />} />
+          <Route path="/contacts" element={<ContactList />} />
+          <Route path="/contacts/new" element={<ContactForm />} />
+          <Route path="/contacts/:id/edit" element={<ContactForm />} />
+        </Route>
+      </Routes>
+    </AuthProvider>
   );
 }

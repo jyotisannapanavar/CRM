@@ -34,9 +34,24 @@ use App\Http\Controllers\Api\TaskTypeController;
 use App\Http\Controllers\Api\ProductCategoryController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\OpportunityProductController;
+use App\Http\Controllers\Api\AccessController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('v1')->group(function () {
+Route::prefix('auth')->group(function () {
+    Route::post('/sign-up', [AccessController::class, 'signUp']);
+    Route::post('/sign-in', [AccessController::class, 'signIn']);
+    Route::post('/forgot-password', [AccessController::class, 'forgotPassword']);
+    Route::post('/reset-password', [AccessController::class, 'resetPassword']);
+});
+
+// Protected routes
+Route::middleware('auth:sanctum')->group(function () {
+
+    // Authentication
+    Route::prefix('auth')->group(function () {
+        Route::post('/sign-out', [AccessController::class, 'signOut']);
+        Route::get('/profile', [AccessController::class, 'profile']);
+    });
     // Users
     Route::get('users', [UserController::class, 'index']);
 
