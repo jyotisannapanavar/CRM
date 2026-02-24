@@ -6,8 +6,11 @@ use App\Enums\Gender;
 use App\Enums\QualificationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Lead;
+use App\Models\Prospect;
+use App\Models\Status;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class LeadController extends Controller
 {
@@ -74,8 +77,11 @@ class LeadController extends Controller
             'qualified_on' => 'nullable|date',
         ]);
 
-        $lead = Lead::create($validated);
-        return response()->json($lead->fresh(), 201);
+        return DB::transaction(function () use ($validated) {
+            $lead = Lead::create($validated);
+            $this->syncProspect($lead);
+            return response()->json($lead->fresh(), 201);
+        });
     }
 
     public function show(int $id): JsonResponse
@@ -114,9 +120,51 @@ class LeadController extends Controller
             'qualified_on' => 'nullable|date',
         ]);
 
-        $lead = Lead::findOrFail($id);
-        $lead->update($validated);
-        return response()->json($lead->fresh());
+        return DB::transaction(function () use ($validated, $id) {
+            $lead = Lead::findOrFail($id);
+            $lead->update($validated);
+            $this->syncProspect($lead);
+            return response()->json($lead->fresh());
+        });
+    }
+
+    private function syncProspect(Lead $lead): void
+    {
+        $lead->load('status', 'source', 'industry');
+
+        if ($lead->status && $lead->status->status_name === 'Interest') {
+            $companyName = $lead->company_name ?? trim(($lead->first_name ?? '') . ' ' . ($lead->last_name ?? ''));
+
+            if (empty($companyName)) {
+                $companyName = "Lead #{$lead->id}";
+            }
+
+            $prospect = Prospect::updateOrCreate(
+                ['company_name' => $companyName],
+                [
+                    'industry' => $lead->industry?->name,
+                    'annual_revenue' => $lead->annual_revenue,
+                    'no_of_employees' => $lead->no_of_employees,
+                    'email' => $lead->email,
+                    'phone' => $lead->mobile_no ?? $lead->phone,
+                    'city' => $lead->city,
+                    'state' => $lead->state,
+                    'country' => $lead->country,
+                    'website' => $lead->website,
+                    'source' => $lead->source?->name,
+                ]
+            );
+
+            // Link lead to prospect
+            $prospect->leads()->syncWithoutDetaching([
+                $lead->id => [
+                    'lead_name' => trim(($lead->first_name ?? '') . ' ' . ($lead->last_name ?? '')),
+                    'email' => $lead->email,
+                    'mobile_no' => $lead->mobile_no,
+                    'status' => $lead->status->status_name,
+                ]
+            ]);
+        }
     }
 
     public function destroy(int $id): JsonResponse

@@ -14,10 +14,26 @@ class Prospect extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'company_name', 'industry', 'market_segment', 'customer_group',
-        'territory', 'no_of_employees', 'annual_revenue', 'fax', 'website',
-        'prospect_owner_id', 'company',
-        'status', 'source', 'address', 'city', 'state', 'country', 'zip_code', 'email', 'phone',
+        'company_name',
+        'industry',
+        'market_segment',
+        'customer_group',
+        'territory',
+        'no_of_employees',
+        'annual_revenue',
+        'fax',
+        'website',
+        'prospect_owner_id',
+        'company',
+        'status',
+        'source',
+        'address',
+        'city',
+        'state',
+        'country',
+        'zip_code',
+        'email',
+        'phone',
     ];
 
     protected $casts = [
