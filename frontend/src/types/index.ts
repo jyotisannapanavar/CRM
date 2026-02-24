@@ -310,6 +310,7 @@ export interface DashboardStats {
     new_last_30_days: number;
     by_status: Array<{ status: string; count: number }>;
     by_qualification: Array<{ qualification_status: string; count: number }>;
+    funnel: Array<{ stage: string; count: number }>;
   };
   opportunities: {
     total: number;

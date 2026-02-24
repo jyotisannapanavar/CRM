@@ -91,7 +91,9 @@ export default function SalesTaskModal({ show, onHide, onSave, taskId, readOnly 
                     const prospectsData = result.data || result;
                     entities = (Array.isArray(prospectsData) ? prospectsData : []).map((p: any) => {
                         const leadNames = (p.leads || []).map((l: any) => `${l.first_name || ''} ${l.last_name || ''}`.trim()).filter(Boolean).join(', ');
-                        const prospectName = p.name || p.company_name || `Prospect #${p.id}`;
+                        const prospectName = (p.company_name && p.company_name !== 'undefined') ? p.company_name :
+                            (p.name && p.name !== 'undefined') ? p.name :
+                                `Prospect #${p.id}`;
                         return {
                             id: p.id,
                             label: leadNames ? `${prospectName} (${leadNames})` : prospectName,
