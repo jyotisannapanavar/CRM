@@ -5,6 +5,38 @@ import { SalesTask } from "../types";
 import { salesTaskApi } from "../services/api";
 import SalesTaskModal from "./SalesTaskModal";
 
+// Task source IDs matching the backend enum
+const TASK_SOURCE_LEAD = 1;
+const TASK_SOURCE_PROSPECT = 2;
+const TASK_SOURCE_OPPORTUNITY = 3;
+
+function getSourceEntityDisplay(task: SalesTask): string {
+    if (!task.source_detail) return "—";
+
+    switch (task.task_source_id) {
+        case TASK_SOURCE_LEAD:
+            return `${task.source_detail.first_name || ''} ${task.source_detail.last_name || ''}`.trim()
+                || `Lead #${task.source_id}`;
+        case TASK_SOURCE_PROSPECT:
+            return task.source_detail.company_name || `Prospect #${task.source_id}`;
+        case TASK_SOURCE_OPPORTUNITY:
+            return task.source_detail.naming_series
+                ? `${task.source_detail.naming_series} - ${task.source_detail.party_name || ''}`
+                : `Opportunity #${task.source_id}`;
+        default:
+            return "—";
+    }
+}
+
+function getSourceBadgeColor(taskSourceId: number): string {
+    switch (taskSourceId) {
+        case TASK_SOURCE_LEAD: return "bg-info";
+        case TASK_SOURCE_PROSPECT: return "bg-warning text-dark";
+        case TASK_SOURCE_OPPORTUNITY: return "bg-success";
+        default: return "bg-secondary";
+    }
+}
+
 export default function SalesTaskList() {
     const [salesTasks, setSalesTasks] = useState<SalesTask[]>([]);
     const [loading, setLoading] = useState(true);
@@ -103,8 +135,8 @@ export default function SalesTaskList() {
                                 <tr>
                                     <th>Type</th>
                                     <th>Source</th>
+                                    <th>Linked To</th>
                                     <th>Assigned To</th>
-                                    {/* <th>Created At</th> */}
                                     <th className="text-end">Actions</th>
                                 </tr>
                             </thead>
@@ -121,7 +153,20 @@ export default function SalesTaskList() {
                                             <td>
                                                 <span className="badge bg-secondary">{task.task_type?.name || "Unknown"}</span>
                                             </td>
-                                            <td>{task.task_source?.name || "Unknown"}</td>
+                                            <td>
+                                                <span className={`badge ${getSourceBadgeColor(task.task_source_id)}`}>
+                                                    {task.task_source?.name || "Unknown"}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {task.source_id ? (
+                                                    <span className="text-primary fw-medium">
+                                                        {getSourceEntityDisplay(task)}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-muted fst-italic">Not linked</span>
+                                                )}
+                                            </td>
                                             <td>
                                                 {task.assigned_user?.name ? (
                                                     <span className="d-flex align-items-center gap-2">
@@ -134,7 +179,6 @@ export default function SalesTaskList() {
                                                     <span className="text-muted fst-italic">Unassigned</span>
                                                 )}
                                             </td>
-                                            {/* <td>{new Date(task.created_at).toLocaleDateString()}</td> */}
                                             <td className="text-end">
                                                 <div className="d-flex gap-2 justify-content-end">
                                                     <button
@@ -151,13 +195,6 @@ export default function SalesTaskList() {
                                                     >
                                                         <Edit size={16} />
                                                     </button>
-                                                    {/* <Link
-                                                        to={`/sales-tasks/${task.id}/details`}
-                                                        className="btn btn-sm btn-outline-secondary"
-                                                        title="Details"
-                                                    >
-                                                        Details
-                                                    </Link> */}
                                                     <button
                                                         onClick={() => handleDelete(task.id)}
                                                         className="btn btn-sm btn-outline-danger"
