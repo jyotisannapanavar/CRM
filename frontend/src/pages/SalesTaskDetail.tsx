@@ -37,8 +37,8 @@ export default function SalesTaskDetail() {
     const loadDetails = async (taskId: number) => {
         try {
             const params: Record<string, string | number> = { sales_task_id: taskId };
-            const data = await salesTaskDetailApi.list(params);
-            setDetails(data);
+            const res = await salesTaskDetailApi.list(params);
+            setDetails(Array.isArray(res) ? res : res.data || []);
         } catch (error) {
             console.error("Failed to load task details:", error);
         } finally {

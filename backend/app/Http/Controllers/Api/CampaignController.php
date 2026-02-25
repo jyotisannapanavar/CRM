@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\CampaignService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Exception;
 
 class CampaignController extends Controller
 {
@@ -15,8 +16,27 @@ class CampaignController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $campaigns = $this->campaignService->list($request->all());
-        return response()->json($campaigns);
+        try {
+            $data = $this->campaignService->list($request->all());
+
+            return response()->json([
+                'message' => 'All campaigns retrieved successfully.',
+                'data' => $data,
+                'pagination' => [
+                    'current_page' => $data->currentPage(),
+                    'total_pages' => $data->lastPage(),
+                    'per_page' => $data->perPage(),
+                    'total_items' => $data->total(),
+                    'next_page_url' => $data->nextPageUrl(),
+                    'prev_page_url' => $data->previousPageUrl(),
+                ],
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'error' => 'Failed to retrieve campaigns',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function store(Request $request): JsonResponse

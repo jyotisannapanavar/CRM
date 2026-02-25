@@ -8,12 +8,15 @@ use App\Models\OpportunityLostReason;
 use App\Models\Status;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Exception;
 
 class OpportunityController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Opportunity::query();
+        try {
+            $query = Opportunity::query();
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -39,22 +42,43 @@ class OpportunityController extends Controller
             });
         }
 
-        if ($request->filled('status_id')) {
-            $query->where('status_id', $request->status_id);
+            if ($request->filled('status_id')) {
+                $query->where('status_id', $request->status_id);
+            }
+
+            if ($request->filled('opportunity_type_id')) {
+                $query->where('opportunity_type_id', $request->opportunity_type_id);
+            }
+
+            if ($request->filled('opportunity_stage_id')) {
+                $query->where('opportunity_stage_id', $request->opportunity_stage_id);
+            }
+
+            $perPage = $request->query('per_page', 15);
+            $queryParameters = Arr::except($request->query(), ['user_id']);
+
+            $data = $query->orderBy('created_at', 'desc')
+                ->paginate($perPage)
+                ->appends($queryParameters);
+
+            return response()->json([
+                'message' => 'All opportunities retrieved successfully.',
+                'data' => $data,
+                'pagination' => [
+                    'current_page' => $data->currentPage(),
+                    'total_pages' => $data->lastPage(),
+                    'per_page' => $data->perPage(),
+                    'total_items' => $data->total(),
+                    'next_page_url' => $data->nextPageUrl(),
+                    'prev_page_url' => $data->previousPageUrl(),
+                ],
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'error' => 'Failed to retrieve opportunities',
+                'message' => $e->getMessage()
+            ], 500);
         }
-
-        if ($request->filled('opportunity_type_id')) {
-            $query->where('opportunity_type_id', $request->opportunity_type_id);
-        }
-
-        if ($request->filled('opportunity_stage_id')) {
-            $query->where('opportunity_stage_id', $request->opportunity_stage_id);
-        }
-
-        $opportunities = $query->orderBy('created_at', 'desc')
-            ->paginate($request->per_page ?? 15);
-
-        return response()->json($opportunities);
     }
 
     public function store(Request $request): JsonResponse

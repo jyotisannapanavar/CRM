@@ -8,34 +8,65 @@ use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rules\Enum;
+use Illuminate\Support\Arr;
+use Exception;
 
 class CustomerController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Customer::query();
+        try {
+            $query = Customer::with([
+                'customerGroup',
+                'territory',
+                'lead',
+                'opportunity',
+                'industry',
+                'priceList',
+                'paymentTerm',
+                'primaryContact'
+            ]);
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
-            });
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%");
+                });
+            }
+
+            if ($request->filled('customer_type')) {
+                $query->where('customer_type', $request->customer_type);
+            }
+
+            if ($request->filled('territory_id')) {
+                $query->where('territory_id', $request->territory_id);
+            }
+
+            $perPage = $request->query('per_page', 10);
+            $queryParameters = Arr::except($request->query(), ['user_id']);
+
+            $data = $query->latest()->paginate($perPage)->appends($queryParameters);
+
+            return response()->json([
+                'message' => 'All customers retrieved successfully.',
+                'data' => $data,
+                'pagination' => [
+                    'current_page' => $data->currentPage(),
+                    'total_pages' => $data->lastPage(),
+                    'per_page' => $data->perPage(),
+                    'total_items' => $data->total(),
+                    'next_page_url' => $data->nextPageUrl(),
+                    'prev_page_url' => $data->previousPageUrl(),
+                ],
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'error' => 'Failed to retrieve customers',
+                'message' => $e->getMessage()
+            ], 500);
         }
-
-        $customers = $query->with([
-            'customerGroup',
-            'territory',
-            'lead',
-            'opportunity',
-            'industry',
-            'priceList',
-            'paymentTerm',
-            'primaryContact'
-        ])->latest()->paginate(10);
-
-        return response()->json($customers);
     }
 
     public function store(Request $request): JsonResponse

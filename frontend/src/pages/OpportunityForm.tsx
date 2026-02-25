@@ -77,8 +77,8 @@ export default function OpportunityForm() {
       territoryApi.list(),
       prospectApi.list(),
       contactApi.list(),
-      productApi.list(),
-      productCategoryApi.list(),
+      productApi.list({ per_page: 1000 }),
+      productCategoryApi.listAll(),
     ]).then(([statusRes, sourceRes, typeRes, stageRes, , leadsRes, territoryRes, prospectsRes, contactsRes, productsRes, categoriesRes]) => {
       setStatuses(Array.isArray(statusRes) ? statusRes : []);
       setSources(Array.isArray(sourceRes) ? sourceRes : []);
@@ -88,7 +88,7 @@ export default function OpportunityForm() {
       setTerritories(Array.isArray(territoryRes) ? territoryRes : []);
       setProspects(Array.isArray(prospectsRes) ? prospectsRes : (prospectsRes as any)?.data || []);
       setContacts(Array.isArray(contactsRes) ? contactsRes : (contactsRes as any)?.data || []);
-      setProducts(Array.isArray(productsRes) ? productsRes : []);
+      setProducts(Array.isArray(productsRes) ? productsRes : (productsRes as any)?.data || []);
       setCategories(Array.isArray(categoriesRes) ? categoriesRes : []);
     });
   }, []);

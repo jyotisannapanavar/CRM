@@ -7,43 +7,67 @@ use App\Models\Contact;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Arr;
+use Exception;
 
 class ContactController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Contact::query();
+        try {
+            $query = Contact::query();
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('middle_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('company_name', 'like', "%{$search}%")
-                  ->orWhere('designation', 'like', "%{$search}%")
-                  ->orWhere('status', 'like', "%{$search}%")
-                  ->orWhereHas('phones', function ($q2) use ($search) {
-                      $q2->where('phone_no', 'like', "%{$search}%");
-                  })
-                  ->orWhereHas('emails', function ($q2) use ($search) {
-                      $q2->where('email', 'like', "%{$search}%");
-                  });
-            });
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('middle_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%")
+                      ->orWhere('company_name', 'like', "%{$search}%")
+                      ->orWhere('designation', 'like', "%{$search}%")
+                      ->orWhere('status', 'like', "%{$search}%")
+                      ->orWhereHas('phones', function ($q2) use ($search) {
+                          $q2->where('phone_no', 'like', "%{$search}%");
+                      })
+                      ->orWhereHas('emails', function ($q2) use ($search) {
+                          $q2->where('email', 'like', "%{$search}%");
+                      });
+                });
+            }
+
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
+            }
+
+            if ($request->filled('gender')) {
+                $query->where('gender', $request->gender);
+            }
+
+            $perPage = $request->query('per_page', 15);
+            $queryParameters = Arr::except($request->query(), ['user_id']);
+
+            $data = $query->orderBy('first_name')
+                ->paginate($perPage)
+                ->appends($queryParameters);
+
+            return response()->json([
+                'message' => 'All contacts retrieved successfully.',
+                'data' => $data,
+                'pagination' => [
+                    'current_page' => $data->currentPage(),
+                    'total_pages' => $data->lastPage(),
+                    'per_page' => $data->perPage(),
+                    'total_items' => $data->total(),
+                    'next_page_url' => $data->nextPageUrl(),
+                    'prev_page_url' => $data->previousPageUrl(),
+                ],
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'error' => 'Failed to retrieve contacts',
+                'message' => $e->getMessage()
+            ], 500);
         }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('gender')) {
-            $query->where('gender', $request->gender);
-        }
-
-        $perPage = $request->get('per_page', 15);
-        return response()->json(
-            $query->orderBy('first_name')->paginate($perPage)
-        );
     }
 
     public function store(Request $request): JsonResponse
