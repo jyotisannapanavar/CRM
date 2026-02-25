@@ -74,11 +74,11 @@ export default function Dashboard() {
     Promise.all([
       dashboardApi.getStats(),
       customerApi.list({ per_page: 6 }).then(r => r.data).catch(() => []),
-      productApi.list().catch(() => []),
+      productApi.list({ per_page: 6 }).then(r => r.data).catch(() => []),
     ]).then(([s, c, p]) => {
       setStats(s);
       setCustomers(c as Customer[]);
-      setProducts((p as Product[]).slice(0, 6));
+      setProducts(p as Product[]);
     }).finally(() => setLoading(false));
   }, []);
 

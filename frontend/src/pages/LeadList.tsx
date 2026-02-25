@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { leadApi, statusApi, sourceApi } from "@/services/api";
-import type { Lead, Status, Source } from "@/types";
-import { Plus, Pencil, Trash2, Eye } from "lucide-react";
+import type { Lead, Status, Source, PaginatedResponse } from "@/types";
+import { Plus, Pencil, Trash2, Eye, ArrowLeft, ArrowRight } from "lucide-react";
 import Swal from "sweetalert2";
 import { useRef } from "react";
 import LeadDetailsModal from "@/components/LeadDetailsModal";
@@ -101,7 +101,10 @@ export default function LeadList() {
   const [sourceFilter, setSourceFilter] = useState("");
   const [viewMode, setViewMode] = useState<'list' | 'board'>('board');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(15);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     Promise.all([statusApi.list(), sourceApi.list()])
@@ -111,16 +114,20 @@ export default function LeadList() {
       });
   }, []);
 
-  const fetchLeads = useCallback(() => {
+  const fetchLeads = useCallback((page = 1) => {
     setLoading(true);
-    const params: Record<string, string> = {};
+    const params: Record<string, string | number> = { page, per_page: perPage };
     if (search) params.search = search;
     if (statusFilter) params.status_id = statusFilter;
     if (sourceFilter) params.source_id = sourceFilter;
-    leadApi.list(params).then((res) => {
-      setLeads(Array.isArray(res) ? res : res.data || []);
-    }).finally(() => setLoading(false));
-  }, [search, statusFilter, sourceFilter]);
+    leadApi.list(params).then((data: PaginatedResponse<Lead>) => {
+      setLeads(data.data || []);
+      setCurrentPage(data.current_page);
+      setTotalPages(data.last_page);
+      setTotal(data.total);
+    }).catch(() => setLeads([]))
+      .finally(() => setLoading(false));
+  }, [search, statusFilter, sourceFilter, perPage]);
 
   useEffect(() => { fetchLeads(); }, [fetchLeads]);
 
@@ -129,7 +136,7 @@ export default function LeadList() {
     if (result.isConfirmed) {
       await leadApi.delete(id);
       Swal.fire("Deleted!", "Lead has been deleted.", "success");
-      fetchLeads();
+      fetchLeads(currentPage);
     }
   };
 
@@ -153,26 +160,11 @@ export default function LeadList() {
         </ol>
       </nav>
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2>Leads</h2>
+        <h2>
+          Leads
+          <small className="text-muted ms-2" style={{ fontSize: "0.5em" }}>({total})</small>
+        </h2>
         <div className="d-flex gap-2">
-          {/* <div className="btn-group" role="group">
-            <button
-              type="button"
-              className={`btn btn-outline-primary ${viewMode === 'list' ? 'active' : ''}`}
-              onClick={() => setViewMode('list')}
-              title="List View"
-            >
-              <i className="bi bi-list"></i>
-            </button>
-            <button
-              type="button"
-              className={`btn btn-outline-primary ${viewMode === 'board' ? 'active' : ''}`}
-              onClick={() => setViewMode('board')}
-              title="Board View"
-            >
-              <i className="bi bi-grid-3x3-gap"></i>
-            </button>
-          </div> */}
           <Link to="/leads/new" className="btn btn-primary"><Plus size={16} className="me-1" /> Add Lead</Link>
         </div>
       </div>
@@ -202,140 +194,256 @@ export default function LeadList() {
           <Link to="/leads/new" className="btn btn-primary">Create a new Lead</Link>
         </div>
       ) : viewMode === 'list' ? (
-        <div className="table-container">
-          <table className="table table-hover mb-0">
-            <thead className="table-light">
-              <tr>
-                <th>Series</th>
-                <th>Name</th>
-                <th>Status</th>
-                <th>Source</th>
-                <th>Company</th>
-                <th>Email</th>
-                <th>Mobile</th>
-                <th className="text-end">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {leads.map((lead) => (
-                <tr key={lead.id}>
-                  <td>
-                    <Link to={`/leads/${lead.id}/edit`} className="text-decoration-none fw-bold text-primary">
-                      {lead.series || lead.id}
-                    </Link>
-                  </td>
-                  <td className="fw-medium">
-                    {lead.salutation} {lead.first_name} {lead.middle_name} {lead.last_name}
-                  </td>
-                  <td>
-                    {lead.status ? (
-                      <span className={`badge bg-${getStatusColor(lead.status.status_name)}`}>{lead.status.status_name}</span>
-                    ) : "-"}
-                  </td>
-                  <td>{lead.source?.name || "-"}</td>
-                  <td>{lead.company_name || "-"}</td>
-                  <td>{lead.email || "-"}</td>
-                  <td>{lead.mobile_no || "-"}</td>
-                  <td className="text-end">
-                    <LeadActionsMenu lead={lead} onView={setSelectedLead} onDelete={handleDelete} />
-                  </td>
+        <div className="card">
+          <div className="card-body p-0">
+            <table className="table table-hover mb-0">
+              <thead className="table-light">
+                <tr>
+                  <th>#</th>
+                  <th>Series</th>
+                  <th>Name</th>
+                  <th>Status</th>
+                  <th>Source</th>
+                  <th>Company</th>
+                  <th>Email</th>
+                  <th>Mobile</th>
+                  <th className="text-end">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {leads.map((lead, index) => (
+                  <tr key={lead.id}>
+                    <td>{(currentPage - 1) * perPage + index + 1}</td>
+                    <td>
+                      <Link to={`/leads/${lead.id}/edit`} className="text-decoration-none fw-bold text-primary">
+                        {lead.series || lead.id}
+                      </Link>
+                    </td>
+                    <td className="fw-medium">
+                      {lead.salutation} {lead.first_name} {lead.middle_name} {lead.last_name}
+                    </td>
+                    <td>
+                      {lead.status ? (
+                        <span className={`badge bg-${getStatusColor(lead.status.status_name)}`}>{lead.status.status_name}</span>
+                      ) : "-"}
+                    </td>
+                    <td>{lead.source?.name || "-"}</td>
+                    <td>{lead.company_name || "-"}</td>
+                    <td>{lead.email || "-"}</td>
+                    <td>{lead.mobile_no || "-"}</td>
+                    <td className="text-end">
+                      <LeadActionsMenu lead={lead} onView={setSelectedLead} onDelete={handleDelete} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {total > 0 && (
+            <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 px-3 pb-3 border-top pt-3">
+                <div className="d-flex align-items-center mb-2 mb-md-0">
+                    <span className="small text-muted me-2">Rows per page:</span>
+                    <select
+                        className="form-select form-select-sm"
+                        style={{ width: "auto" }}
+                        value={perPage}
+                        onChange={(e) => {
+                            setPerPage(Number(e.target.value));
+                            setCurrentPage(1);
+                        }}
+                    >
+                        {[10, 15, 20, 25, 50].map((opt) => (
+                            <option key={opt} value={opt}>
+                                {opt}
+                            </option>
+                        ))}
+                    </select>
+                    <div className="small text-muted ms-3">
+                        {(currentPage - 1) * perPage + 1}-
+                        {Math.min(currentPage * perPage, total)} of {total}
+                    </div>
+                </div>
+                <nav>
+                    <ul className="pagination pagination-sm mb-0">
+                        <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                            <button 
+                                className="page-link border-0" 
+                                onClick={() => fetchLeads(currentPage - 1)} 
+                                disabled={currentPage === 1}
+                                title="Previous Page"
+                            >
+                                <ArrowLeft size={16} />
+                            </button>
+                        </li>
+                        <li className="page-item disabled">
+                            <span className="page-link border-0 text-dark bg-transparent font-weight-bold">
+                                Page {currentPage} of {totalPages}
+                            </span>
+                        </li>
+                        <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                            <button 
+                                className="page-link border-0" 
+                                onClick={() => fetchLeads(currentPage + 1)} 
+                                disabled={currentPage === totalPages}
+                                title="Next Page"
+                            >
+                                <ArrowRight size={16} />
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+          )}
         </div>
       ) : (
-        <div className="d-flex overflow-auto pb-4" style={{ gap: '1.5rem', minHeight: '600px' }}>
-          {statuses.map((status) => {
-            const statusLeads = leads.filter(l => l.status_id === status.id);
-            const color = getStatusColor(status.status_name);
-            return (
-              <div key={status.id} style={{ minWidth: '320px', maxWidth: '320px' }} className="d-flex flex-column h-100">
-                <div className="d-flex align-items-center mb-3 px-1">
-                  <span className={`badge bg-${color} rounded-circle p-1 me-2`} style={{ width: '10px', height: '10px' }}> </span>
-                  <h6 className="mb-0 fw-bold fs-6 flex-grow-1">{status.status_name}</h6>
-                  <span className="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2">{statusLeads.length}</span>
+        <>
+          <div className="d-flex overflow-auto pb-4" style={{ gap: '1.5rem', minHeight: '600px' }}>
+            {statuses.map((status) => {
+              const statusLeads = leads.filter(l => l.status_id === status.id);
+              const color = getStatusColor(status.status_name);
+              return (
+                <div key={status.id} style={{ minWidth: '320px', maxWidth: '320px' }} className="d-flex flex-column h-100">
+                  <div className="d-flex align-items-center mb-3 px-1">
+                    <span className={`badge bg-${color} rounded-circle p-1 me-2`} style={{ width: '10px', height: '10px' }}> </span>
+                    <h6 className="mb-0 fw-bold fs-6 flex-grow-1">{status.status_name}</h6>
+                    <span className="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2">{statusLeads.length}</span>
+                  </div>
+
+                  <div className="bg-light rounded-3 p-2 d-flex flex-column gap-2 flex-grow-1">
+                    <Link to={`/leads/new?status=${status.id}`} className="btn btn-outline-secondary border-dashed w-100 d-flex align-items-center justify-content-center py-2 mb-2" style={{ borderStyle: 'dashed' }}>
+                      <Plus size={16} className="me-1" /> Add Lead
+                    </Link>
+
+                    <div className="flex-grow-1 overflow-auto" style={{ maxHeight: 'calc(100vh - 280px)', scrollbarWidth: 'thin' }}>
+                      {statusLeads.map(lead => (
+                        <div key={lead.id} className={`card mb-3 border-0 border-start border-4 shadow-sm`} style={{ borderLeftColor: `var(--bs-${color}) !important` }}>
+                          <div className="card-body p-3">
+                            <div className="d-flex justify-content-between align-items-start mb-2">
+                              <div>
+                                <div className="text-muted small mb-1">{lead.series || lead.id}</div>
+                                <h6 className="card-title mb-0 fw-bold">
+                                  <Link to={`/leads/${lead.id}/edit`} className="text-decoration-none text-dark">
+                                    {lead.salutation} {lead.first_name} {lead.last_name}
+                                  </Link>
+                                </h6>
+                              </div>
+                              <LeadActionsMenu lead={lead} onView={setSelectedLead} onDelete={handleDelete} />
+                            </div>
+                            {lead.company_name && <p className="small text-muted mb-1">{lead.company_name}</p>}
+                            {lead.email && <p className="small text-muted mb-2 text-truncate">{lead.email}</p>}
+
+                            <div className="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                              <span className="fw-bold text-dark">
+                                {lead.annual_revenue ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(lead.annual_revenue) : ''}
+                              </span>
+                              <span className={`badge bg-${color} bg-opacity-10 text-${color} px-2 py-1`}>
+                                Active
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {statusLeads.length === 0 && (
+                        <div className="text-center text-muted py-4 small">No leads in this stage</div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-
+              );
+            })}
+            {/* Unassigned Column */}
+            {leads.filter(l => !l.status_id).length > 0 && (
+              <div style={{ minWidth: '320px', maxWidth: '320px' }} className="d-flex flex-column h-100">
+                <div className="d-flex align-items-center mb-3 px-1">
+                  <span className="badge bg-secondary rounded-circle p-1 me-2" style={{ width: '10px', height: '10px' }}> </span>
+                  <h6 className="mb-0 fw-bold fs-6 flex-grow-1">Unassigned</h6>
+                  <span className="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2">{leads.filter(l => !l.status_id).length}</span>
+                </div>
                 <div className="bg-light rounded-3 p-2 d-flex flex-column gap-2 flex-grow-1">
-                  <Link to={`/leads/new?status=${status.id}`} className="btn btn-outline-secondary border-dashed w-100 d-flex align-items-center justify-content-center py-2 mb-2" style={{ borderStyle: 'dashed' }}>
-                    <Plus size={16} className="me-1" /> Add Lead
-                  </Link>
-
-                  <div className="flex-grow-1 overflow-auto" style={{ maxHeight: 'calc(100vh - 280px)', scrollbarWidth: 'thin' }}>
-                    {statusLeads.map(lead => (
-                      <div key={lead.id} className={`card mb-3 border-0 border-start border-4 shadow-sm`} style={{ borderLeftColor: `var(--bs-${color}) !important` }}>
+                  <div className="flex-grow-1 overflow-auto" style={{ maxHeight: 'calc(100vh - 280px)' }}>
+                    {leads.filter(l => !l.status_id).map(lead => (
+                      <div key={lead.id} className="card mb-3 border-0 border-start border-4 border-secondary shadow-sm">
                         <div className="card-body p-3">
                           <div className="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                              <div className="text-muted small mb-1">{lead.series || lead.id}</div>
-                              <h6 className="card-title mb-0 fw-bold">
-                                <Link to={`/leads/${lead.id}/edit`} className="text-decoration-none text-dark">
-                                  {lead.salutation} {lead.first_name} {lead.last_name}
-                                </Link>
-                              </h6>
-                            </div>
+                            <h6 className="card-title mb-0 fw-bold">
+                              <Link to={`/leads/${lead.id}/edit`} className="text-decoration-none text-dark">
+                                {lead.salutation} {lead.first_name} {lead.last_name}
+                              </Link>
+                            </h6>
                             <LeadActionsMenu lead={lead} onView={setSelectedLead} onDelete={handleDelete} />
                           </div>
                           {lead.company_name && <p className="small text-muted mb-1">{lead.company_name}</p>}
-                          {lead.email && <p className="small text-muted mb-2 text-truncate">{lead.email}</p>}
-
-                          <div className="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
-                            <span className="fw-bold text-dark">
-                              {lead.annual_revenue ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(lead.annual_revenue) : ''}
-                            </span>
-                            <span className={`badge bg-${color} bg-opacity-10 text-${color} px-2 py-1`}>
-                              Active
-                            </span>
+                          <div className="mt-2">
+                            <Link to={`/leads/${lead.id}/edit`} className="btn btn-xs btn-outline-primary w-100">Assign Status</Link>
                           </div>
-                          {/* <div className="d-flex justify-content-between align-items-center mt-2 small text-muted">
-                            <span>{new Date(lead.created_at).toLocaleDateString()}</span>
-                          </div> */}
                         </div>
                       </div>
                     ))}
-                    {statusLeads.length === 0 && (
-                      <div className="text-center text-muted py-4 small">No leads in this stage</div>
-                    )}
                   </div>
                 </div>
               </div>
-            );
-          })}
-          {/* Unassigned Column */}
-          {leads.filter(l => !l.status_id).length > 0 && (
-            <div style={{ minWidth: '320px', maxWidth: '320px' }} className="d-flex flex-column h-100">
-              <div className="d-flex align-items-center mb-3 px-1">
-                <span className="badge bg-secondary rounded-circle p-1 me-2" style={{ width: '10px', height: '10px' }}> </span>
-                <h6 className="mb-0 fw-bold fs-6 flex-grow-1">Unassigned</h6>
-                <span className="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2">{leads.filter(l => !l.status_id).length}</span>
-              </div>
-              <div className="bg-light rounded-3 p-2 d-flex flex-column gap-2 flex-grow-1">
-                <div className="flex-grow-1 overflow-auto" style={{ maxHeight: 'calc(100vh - 280px)' }}>
-                  {leads.filter(l => !l.status_id).map(lead => (
-                    <div key={lead.id} className="card mb-3 border-0 border-start border-4 border-secondary shadow-sm">
-                      <div className="card-body p-3">
-                        <div className="d-flex justify-content-between align-items-start mb-2">
-                          <h6 className="card-title mb-0 fw-bold">
-                            <Link to={`/leads/${lead.id}/edit`} className="text-decoration-none text-dark">
-                              {lead.salutation} {lead.first_name} {lead.last_name}
-                            </Link>
-                          </h6>
-                          <LeadActionsMenu lead={lead} onView={setSelectedLead} onDelete={handleDelete} />
-                        </div>
-                        {lead.company_name && <p className="small text-muted mb-1">{lead.company_name}</p>}
-                        <div className="mt-2">
-                          <Link to={`/leads/${lead.id}/edit`} className="btn btn-xs btn-outline-primary w-100">Assign Status</Link>
-                        </div>
-                      </div>
+            )}
+
+          </div>
+          {/* Pagination for Board View */}
+          {total > 0 && (
+            <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 border-top pt-3">
+                <div className="d-flex align-items-center mb-2 mb-md-0">
+                    <span className="small text-muted me-2">Rows per page:</span>
+                    <select
+                        className="form-select form-select-sm"
+                        style={{ width: "auto" }}
+                        value={perPage}
+                        onChange={(e) => {
+                            setPerPage(Number(e.target.value));
+                            setCurrentPage(1);
+                        }}
+                    >
+                        {[10, 15, 20, 25, 50].map((opt) => (
+                            <option key={opt} value={opt}>
+                                {opt}
+                            </option>
+                        ))}
+                    </select>
+                    <div className="small text-muted ms-3">
+                        {(currentPage - 1) * perPage + 1}-
+                        {Math.min(currentPage * perPage, total)} of {total}
                     </div>
-                  ))}
                 </div>
-              </div>
+                <nav>
+                    <ul className="pagination pagination-sm mb-0">
+                        <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                            <button 
+                                className="page-link border-0" 
+                                onClick={() => fetchLeads(currentPage - 1)} 
+                                disabled={currentPage === 1}
+                                title="Previous Page"
+                            >
+                                <ArrowLeft size={16} />
+                            </button>
+                        </li>
+                        <li className="page-item disabled">
+                            <span className="page-link border-0 text-dark bg-transparent font-weight-bold">
+                                Page {currentPage} of {totalPages}
+                            </span>
+                        </li>
+                        <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                            <button 
+                                className="page-link border-0" 
+                                onClick={() => fetchLeads(currentPage + 1)} 
+                                disabled={currentPage === totalPages}
+                                title="Next Page"
+                            >
+                                <ArrowRight size={16} />
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
             </div>
           )}
-
-        </div>
+        </>
       )}
       {selectedLead && (
         <LeadDetailsModal lead={selectedLead} onClose={() => setSelectedLead(null)} />

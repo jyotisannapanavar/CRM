@@ -382,6 +382,19 @@ export interface PaginatedResponse<T> {
   total: number;
 }
 
+export interface WrappedPaginatedResponse<T> {
+  message: string;
+  data: PaginatedResponse<T>;
+  pagination: {
+    current_page: number;
+    total_pages: number;
+    per_page: number;
+    total_items: number;
+    next_page_url: string | null;
+    prev_page_url: string | null;
+  };
+}
+
 export interface CustomerGroup {
   id: number;
   name: string;

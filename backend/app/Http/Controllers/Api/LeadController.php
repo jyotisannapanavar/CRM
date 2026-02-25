@@ -8,40 +8,64 @@ use App\Http\Controllers\Controller;
 use App\Models\Lead;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Exception;
 
 class LeadController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Lead::query();
+        try {
+            $query = Lead::query();
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('company_name', 'like', "%{$search}%")
-                    ->orWhere('mobile_no', 'like', "%{$search}%");
-            });
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('company_name', 'like', "%{$search}%")
+                        ->orWhere('mobile_no', 'like', "%{$search}%");
+                });
+            }
+
+            if ($request->filled('status_id')) {
+                $query->where('status_id', $request->status_id);
+            }
+
+            if ($request->filled('source_id')) {
+                $query->where('source_id', $request->source_id);
+            }
+
+            if ($request->filled('industry_id')) {
+                $query->where('industry_id', $request->industry_id);
+            }
+
+            $perPage = $request->query('per_page', 15);
+            $queryParameters = Arr::except($request->query(), ['user_id']);
+
+            $data = $query->orderBy('created_at', 'desc')
+                ->paginate($perPage)
+                ->appends($queryParameters);
+
+            return response()->json([
+                'message' => 'All leads retrieved successfully.',
+                'data' => $data,
+                'pagination' => [
+                    'current_page' => $data->currentPage(),
+                    'total_pages' => $data->lastPage(),
+                    'per_page' => $data->perPage(),
+                    'total_items' => $data->total(),
+                    'next_page_url' => $data->nextPageUrl(),
+                    'prev_page_url' => $data->previousPageUrl(),
+                ],
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'error' => 'Failed to retrieve leads',
+                'message' => $e->getMessage()
+            ], 500);
         }
-
-        if ($request->filled('status_id')) {
-            $query->where('status_id', $request->status_id);
-        }
-
-        if ($request->filled('source_id')) {
-            $query->where('source_id', $request->source_id);
-        }
-
-        if ($request->filled('industry_id')) {
-            $query->where('industry_id', $request->industry_id);
-        }
-
-        $leads = $query->orderBy('created_at', 'desc')
-            ->paginate($request->per_page ?? 15);
-
-        return response()->json($leads);
     }
 
     public function store(Request $request): JsonResponse

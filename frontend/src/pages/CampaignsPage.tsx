@@ -1,11 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
 import { campaignApi } from "@/services/api";
-import type { Campaign } from "@/types";
+import type { Campaign, PaginatedResponse } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog } from "@/components/ui/dialog";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, ArrowLeft } from "lucide-react";
 
 export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -14,14 +14,23 @@ export default function CampaignsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Campaign | null>(null);
   const [form, setForm] = useState<Record<string, string>>({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
-  const fetchData = useCallback(() => {
+  const fetchData = useCallback((page = 1) => {
     setLoading(true);
-    const params: Record<string, string> = {};
+    const params: Record<string, string | number> = { page, per_page: 15 };
     if (search) params.search = search;
-    campaignApi.list(params).then((res) => {
-      setCampaigns(Array.isArray(res) ? res : res.data || []);
-    }).finally(() => setLoading(false));
+    campaignApi.list(params)
+      .then((data: PaginatedResponse<Campaign>) => {
+        setCampaigns(data.data || []);
+        setCurrentPage(data.current_page);
+        setTotalPages(data.last_page);
+        setTotal(data.total);
+      })
+      .catch(() => setCampaigns([]))
+      .finally(() => setLoading(false));
   }, [search]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
@@ -40,13 +49,13 @@ export default function CampaignsPage() {
       await campaignApi.create(form);
     }
     setDialogOpen(false);
-    fetchData();
+    fetchData(currentPage);
   };
 
   const handleDelete = async (id: number) => {
     if (confirm("Delete this campaign?")) {
       await campaignApi.delete(id);
-      fetchData();
+      fetchData(currentPage);
     }
   };
 
@@ -55,7 +64,10 @@ export default function CampaignsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Campaigns</h2>
+        <h2 className="text-2xl font-bold">
+          Campaigns
+          <span className="text-sm font-normal text-gray-400 ml-2">({total})</span>
+        </h2>
         <Button onClick={openCreate}><Plus className="h-4 w-4 mr-1" /> New Campaign</Button>
       </div>
 
@@ -73,6 +85,7 @@ export default function CampaignsPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>#</TableHead>
                 <TableHead>Campaign Name</TableHead>
                 <TableHead>Campaign Code</TableHead>
                 <TableHead>Created</TableHead>
@@ -80,8 +93,9 @@ export default function CampaignsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {campaigns.map((c) => (
+              {campaigns.map((c, index) => (
                 <TableRow key={c.id}>
+                  <TableCell>{(currentPage - 1) * 15 + index + 1}</TableCell>
                   <TableCell className="font-medium">{c.name}</TableCell>
                   <TableCell className="max-w-xs truncate">{c.campaign_code || "-"}</TableCell>
                   <TableCell>{new Date(c.created_at).toLocaleDateString()}</TableCell>
@@ -93,6 +107,36 @@ export default function CampaignsPage() {
               ))}
             </TableBody>
           </Table>
+
+          {/* Pagination */}
+          {totalPages >= 1 && (
+            <div className="flex flex-col md:flex-row items-center justify-between px-4 py-3 border-t">
+              <span className="text-sm text-gray-500 mb-2 md:mb-0">
+                Showing page <strong>{currentPage}</strong> of{" "}
+                <strong>{totalPages}</strong> · {total} records
+              </span>
+              <div className="flex gap-1 items-center">
+                <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => fetchData(currentPage - 1)}>
+                  <ArrowLeft className="h-4 w-4 mr-1" /> Previous
+                </Button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(page => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 2)
+                  .map((page, idx, arr) => (
+                    <span key={page} className="flex items-center gap-1">
+                      {idx > 0 && arr[idx - 1] < page - 1 && (
+                        <span className="px-1 text-gray-400">…</span>
+                      )}
+                      <Button variant={page === currentPage ? "default" : "outline"} size="sm" onClick={() => fetchData(page)}>
+                        {page}
+                      </Button>
+                    </span>
+                  ))}
+                <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => fetchData(currentPage + 1)}>
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

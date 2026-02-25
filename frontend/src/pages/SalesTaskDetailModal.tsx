@@ -55,8 +55,8 @@ export default function SalesTaskDetailModal({ show, onHide, onSave, detail, sal
 
     const loadSalesTasks = async () => {
         try {
-            const data = await salesTaskApi.list();
-            setSalesTasks(data);
+            const res = await salesTaskApi.list({ per_page: 1000 });
+            setSalesTasks(res.data || []);
         } catch (error) {
             console.error("Failed to load sales tasks:", error);
         }

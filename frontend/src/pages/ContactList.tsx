@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { contactApi } from "@/services/api";
 import type { Contact, PaginatedResponse } from "@/types";
-import { Plus, Trash2, Edit2, UserCircle, Search, Eye, ChevronLeft, ChevronRight, X, Phone, Mail, Star } from "lucide-react";
+import { Plus, Trash2, Edit2, UserCircle, Search, Eye, ArrowLeft, ArrowRight, X, Phone, Mail, Star } from "lucide-react";
 import Swal from "sweetalert2";
 
 export default function ContactList() {
@@ -10,13 +10,14 @@ export default function ContactList() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
+    const [perPage, setPerPage] = useState(15);
     const [totalPages, setTotalPages] = useState(1);
     const [total, setTotal] = useState(0);
 
-    const fetchContacts = useCallback((page = 1, searchTerm?: string) => {
+    const fetchContacts = useCallback((page = 1) => {
         setLoading(true);
-        const params: Record<string, string | number> = { page, per_page: 15 };
-        if (searchTerm) params.search = searchTerm;
+        const params: Record<string, string | number> = { page, per_page: perPage };
+        if (search) params.search = search;
         contactApi
             .list(params)
             .then((data: PaginatedResponse<Contact>) => {
@@ -27,7 +28,7 @@ export default function ContactList() {
             })
             .catch(() => setContacts([]))
             .finally(() => setLoading(false));
-    }, []);
+    }, [search, perPage]);
 
     useEffect(() => {
         fetchContacts();
@@ -35,7 +36,7 @@ export default function ContactList() {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            fetchContacts(1, search);
+            fetchContacts(1);
         }, 300);
         return () => clearTimeout(timer);
     }, [search, fetchContacts]);
@@ -125,7 +126,7 @@ export default function ContactList() {
             try {
                 await contactApi.delete(id);
                 Swal.fire("Deleted!", "Contact has been deleted.", "success");
-                fetchContacts(currentPage, search);
+                fetchContacts(currentPage);
             } catch {
                 Swal.fire("Error", "Failed to delete contact.", "error");
             }
@@ -212,7 +213,7 @@ export default function ContactList() {
                                 const emailCount = (contact.emails || []).length;
                                 return (
                                     <tr key={contact.id}>
-                                        <td>{(currentPage - 1) * 15 + index + 1}</td>
+                                        <td>{(currentPage - 1) * perPage + index + 1}</td>
                                         <td>
                                             <span className="fw-medium">{contact.full_name}</span>
                                         </td>
@@ -300,27 +301,59 @@ export default function ContactList() {
                 </div>
 
                 {/* Pagination */}
-                {totalPages > 1 && (
-                    <div className="card-footer d-flex justify-content-between align-items-center">
-                        <small className="text-muted">
-                            Page {currentPage} of {totalPages} &middot; {total} contacts
-                        </small>
-                        <div className="btn-group btn-group-sm">
-                            <button
-                                className="btn btn-outline-secondary"
-                                disabled={currentPage <= 1}
-                                onClick={() => fetchContacts(currentPage - 1, search)}
+                {total > 0 && (
+                    <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 px-3 pb-3 border-top pt-3">
+                        <div className="d-flex align-items-center mb-2 mb-md-0">
+                            <span className="small text-muted me-2">Rows per page:</span>
+                            <select
+                                className="form-select form-select-sm"
+                                style={{ width: "auto" }}
+                                value={perPage}
+                                onChange={(e) => {
+                                    setPerPage(Number(e.target.value));
+                                    setCurrentPage(1);
+                                }}
                             >
-                                <ChevronLeft size={14} /> Prev
-                            </button>
-                            <button
-                                className="btn btn-outline-secondary"
-                                disabled={currentPage >= totalPages}
-                                onClick={() => fetchContacts(currentPage + 1, search)}
-                            >
-                                Next <ChevronRight size={14} />
-                            </button>
+                                {[10, 15, 20, 25, 50].map((opt) => (
+                                    <option key={opt} value={opt}>
+                                        {opt}
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="small text-muted ms-3">
+                                {(currentPage - 1) * perPage + 1}-
+                                {Math.min(currentPage * perPage, total)} of {total}
+                            </div>
                         </div>
+                        <nav>
+                            <ul className="pagination pagination-sm mb-0">
+                                <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                                    <button 
+                                        className="page-link border-0" 
+                                        onClick={() => fetchContacts(currentPage - 1)} 
+                                        disabled={currentPage === 1}
+                                        title="Previous Page"
+                                    >
+                                        <ArrowLeft size={16} />
+                                    </button>
+                                </li>
+                                <li className="page-item disabled">
+                                    <span className="page-link border-0 text-dark bg-transparent font-weight-bold">
+                                        Page {currentPage} of {totalPages}
+                                    </span>
+                                </li>
+                                <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                                    <button 
+                                        className="page-link border-0" 
+                                        onClick={() => fetchContacts(currentPage + 1)} 
+                                        disabled={currentPage === totalPages}
+                                        title="Next Page"
+                                    >
+                                        <ArrowRight size={16} />
+                                    </button>
+                                </li>
+                            </ul>
+                        </nav>
                     </div>
                 )}
             </div>

@@ -18,7 +18,7 @@ import type {
   CrmNote,
   CrmSetting,
   DashboardStats,
-  PaginatedResponse,
+  WrappedPaginatedResponse,
   Territory,
   Contact,
   Customer,
@@ -57,7 +57,7 @@ export const dashboardApi = {
 
 export const leadApi = {
   list: (params?: Record<string, string | number>) =>
-    api.get<PaginatedResponse<Lead>>("/leads", { params }).then((r) => r.data),
+    api.get<WrappedPaginatedResponse<Lead>>("/leads", { params }).then((r) => r.data.data),
   get: (id: number) => api.get<Lead>(`/leads/${id}`).then((r) => r.data),
   create: (data: Partial<Lead>) => api.post<Lead>("/leads", data).then((r) => r.data),
   update: (id: number, data: Partial<Lead>) =>
@@ -73,7 +73,7 @@ export const leadApi = {
 
 export const opportunityApi = {
   list: (params?: Record<string, string | number>) =>
-    api.get<PaginatedResponse<Opportunity>>("/opportunities", { params }).then((r) => r.data),
+    api.get<WrappedPaginatedResponse<Opportunity>>("/opportunities", { params }).then((r) => r.data.data),
   get: (id: number) => api.get<Opportunity>(`/opportunities/${id}`).then((r) => r.data),
   create: (data: Partial<Opportunity>) =>
     api.post<Opportunity>("/opportunities", data).then((r) => r.data),
@@ -86,7 +86,7 @@ export const opportunityApi = {
 
 export const prospectApi = {
   list: (params?: Record<string, string | number>) =>
-    api.get<PaginatedResponse<Prospect>>("/prospects", { params }).then((r) => r.data),
+    api.get<WrappedPaginatedResponse<Prospect>>("/prospects", { params }).then((r) => r.data.data),
   get: (id: number) => api.get<Prospect>(`/prospects/${id}`).then((r) => r.data),
   create: (data: Partial<Prospect>) =>
     api.post<Prospect>("/prospects", data).then((r) => r.data),
@@ -97,7 +97,7 @@ export const prospectApi = {
 
 export const campaignApi = {
   list: (params?: Record<string, string | number>) =>
-    api.get<PaginatedResponse<Campaign>>("/campaigns", { params }).then((r) => r.data),
+    api.get<WrappedPaginatedResponse<Campaign>>("/campaigns", { params }).then((r) => r.data.data),
   get: (id: number) => api.get<Campaign>(`/campaigns/${id}`).then((r) => r.data),
   create: (data: Partial<Campaign>) =>
     api.post<Campaign>("/campaigns", data).then((r) => r.data),
@@ -118,7 +118,7 @@ export const sourceApi = {
 
 export const contractApi = {
   list: (params?: Record<string, string | number>) =>
-    api.get<PaginatedResponse<Contract>>("/contracts", { params }).then((r) => r.data),
+    api.get<WrappedPaginatedResponse<Contract>>("/contracts", { params }).then((r) => r.data.data),
   get: (id: number) => api.get<Contract>(`/contracts/${id}`).then((r) => r.data),
   create: (data: Partial<Contract>) =>
     api.post<Contract>("/contracts", data).then((r) => r.data),
@@ -131,7 +131,7 @@ export const contractApi = {
 
 export const appointmentApi = {
   list: (params?: Record<string, string | number>) =>
-    api.get<PaginatedResponse<Appointment>>("/appointments", { params }).then((r) => r.data),
+    api.get<WrappedPaginatedResponse<Appointment>>("/appointments", { params }).then((r) => r.data.data),
   get: (id: number) => api.get<Appointment>(`/appointments/${id}`).then((r) => r.data),
   create: (data: Partial<Appointment>) =>
     api.post<Appointment>("/appointments", data).then((r) => r.data),
@@ -180,7 +180,8 @@ export const industryTypeApi = {
 };
 
 export const lostReasonApi = {
-  list: () => api.get<OpportunityLostReason[]>("/lost-reasons").then((r) => r.data),
+  list: (params?: Record<string, string | number>) =>
+    api.get<WrappedPaginatedResponse<OpportunityLostReason>>("/lost-reasons", { params }).then((r) => r.data.data),
   get: (id: number) => api.get<OpportunityLostReason>(`/lost-reasons/${id}`).then((r) => r.data),
   create: (data: { opportunity_id: number; opportunity_lost_reasons: string }) =>
     api.post<OpportunityLostReason>("/lost-reasons", data).then((r) => r.data),
@@ -237,7 +238,7 @@ export const enumApi = {
 
 export const contactApi = {
   list: (params?: Record<string, string | number>) =>
-    api.get<PaginatedResponse<Contact>>("/contacts", { params }).then((r) => r.data),
+    api.get<WrappedPaginatedResponse<Contact>>("/contacts", { params }).then((r) => r.data.data),
   get: (id: number) => api.get<Contact>(`/contacts/${id}`).then((r) => r.data),
   create: (data: Partial<Contact>) =>
     api.post<Contact>("/contacts", data).then((r) => r.data),
@@ -259,7 +260,7 @@ export const territoryApi = {
 
 export const customerApi = {
   list: (params?: Record<string, string | number>) =>
-    api.get<PaginatedResponse<Customer>>("/customers", { params }).then((r) => r.data),
+    api.get<WrappedPaginatedResponse<Customer>>("/customers", { params }).then((r) => r.data.data),
   get: (id: number) => api.get<Customer>(`/customers/${id}`).then((r) => r.data),
   create: (data: Partial<Customer>) =>
     api.post<Customer>("/customers", data).then((r) => r.data),
@@ -296,7 +297,9 @@ export const paymentTermApi = {
 };
 
 export const productCategoryApi = {
-  list: () => api.get<ProductCategory[]>("/product-categories").then((r) => r.data),
+  list: (params?: Record<string, string | number>) =>
+    api.get<WrappedPaginatedResponse<ProductCategory>>("/product-categories", { params }).then((r) => r.data.data),
+  listAll: () => api.get<WrappedPaginatedResponse<ProductCategory>>("/product-categories", { params: { per_page: 1000 } }).then((r) => r.data.data.data),
   get: (id: number) => api.get<ProductCategory>(`/product-categories/${id}`).then((r) => r.data),
   create: (data: Partial<ProductCategory>) =>
     api.post<ProductCategory>("/product-categories", data).then((r) => r.data),
@@ -306,7 +309,8 @@ export const productCategoryApi = {
 };
 
 export const productApi = {
-  list: () => api.get<Product[]>("/products").then((r) => r.data),
+  list: (params?: Record<string, string | number>) =>
+    api.get<WrappedPaginatedResponse<Product>>("/products", { params }).then((r) => r.data.data),
   get: (id: number) => api.get<Product>(`/products/${id}`).then((r) => r.data),
   create: (data: Partial<Product>) =>
     api.post<Product>("/products", data).then((r) => r.data),
@@ -338,7 +342,8 @@ export const taskTypeApi = {
 };
 
 export const salesTaskApi = {
-  list: () => api.get<SalesTask[]>("/sales-tasks").then((r) => r.data),
+  list: (params?: Record<string, string | number>) =>
+    api.get<WrappedPaginatedResponse<SalesTask>>("/sales-tasks", { params }).then((r) => r.data.data),
   get: (id: number) => api.get<SalesTask>(`/sales-tasks/${id}`).then((r) => r.data),
   create: (data: Partial<SalesTask>) =>
     api.post<SalesTask>("/sales-tasks", data).then((r) => r.data),
@@ -350,7 +355,7 @@ export const salesTaskApi = {
 
 export const salesTaskDetailApi = {
   list: (params?: Record<string, string | number>) =>
-    api.get<SalesTaskDetail[]>("/sales-task-details", { params }).then((r) => r.data),
+    api.get<WrappedPaginatedResponse<SalesTaskDetail>>("/sales-task-details", { params }).then((r) => r.data.data),
   get: (id: number) => api.get<SalesTaskDetail>(`/sales-task-details/${id}`).then((r) => r.data),
   create: (data: Partial<SalesTaskDetail>) =>
     api.post<SalesTaskDetail>("/sales-task-details", data).then((r) => r.data),
