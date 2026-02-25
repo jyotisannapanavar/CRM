@@ -126,10 +126,6 @@ export default function CustomerForm() {
         }
     };
 
-    if (loading) {
-        return <div className="text-center py-5">Loading...</div>;
-    }
-
     return (
         <div>
             <nav aria-label="breadcrumb">

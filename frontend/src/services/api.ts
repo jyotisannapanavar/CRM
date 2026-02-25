@@ -35,15 +35,53 @@ import type {
 } from "../types";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000/api",
   headers: { "Content-Type": "application/json", Accept: "application/json" },
 });
+
+// Add a request interceptor
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add a response interceptor
+api.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.clear();
+      // Redirect to login if not already there
+      if (!window.location.pathname.includes("/login")) {
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 export interface User {
   id: number;
   name: string;
   email: string;
 }
+
+export const authApi = {
+  signIn: (data: any) => api.post("/auth/sign-in", data).then((r) => r.data),
+  signUp: (data: any) => api.post("/auth/sign-up", data).then((r) => r.data),
+  signOut: () => api.post("/auth/sign-out").then((r) => r.data),
+  getProfile: () => api.get("/auth/profile").then((r) => r.data),
+};
 
 export const userApi = {
   list: () => api.get<User[]>("/users").then((r) => r.data),

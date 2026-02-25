@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { dashboardApi, customerApi, productApi } from "@/services/api";
-import type { DashboardStats, Customer, Product } from "@/types";
+import { dashboardApi, customerApi, productApi, leadApi } from "@/services/api";
+import type { DashboardStats, Customer, Product, Lead } from "@/types";
 import { Users, Target, CalendarClock, FileText, MoreVertical, Send, Package, TrendingUp, TrendingDown } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell
+  PieChart, Pie, Cell, Legend, CartesianGrid
 } from "recharts";
 import "./Dashboard.css";
 
@@ -64,21 +64,45 @@ const activityMessages = [
   { id: 4, type: "sent", text: "Contract sent for review. Waiting for client signature on the agreement." },
 ];
 
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div style={{
+        backgroundColor: '#fff',
+        padding: '6px 10px',
+        border: 'none',
+        borderRadius: '6px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+        fontSize: '11px',
+        fontWeight: 600,
+        color: '#495057'
+      }}>
+        {label ? `${label}: ` : ''}{payload[0].name}: {payload[0].value}
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [leads, setLeads] = useState<Lead[]>([]);
+
 
   useEffect(() => {
     Promise.all([
       dashboardApi.getStats(),
       customerApi.list({ per_page: 6 }).then(r => r.data).catch(() => []),
       productApi.list({ per_page: 6 }).then(r => r.data).catch(() => []),
-    ]).then(([s, c, p]) => {
+      leadApi.list({ per_page: 50 }).then(r => r.data).catch(() => []),
+    ]).then(([s, c, p, l]) => {
       setStats(s);
       setCustomers(c as Customer[]);
       setProducts(p as Product[]);
+      setLeads(l as Lead[]);
     }).finally(() => setLoading(false));
   }, []);
 
@@ -149,19 +173,15 @@ export default function Dashboard() {
   ];
 
   // Bar chart data (leads by status)
-  const barData = stats.leads.by_status.map(s => ({
-    name: s.status,
-    count: s.count,
-  }));
+  const barData = Object.values(
+    leads.reduce((acc: Record<string, { name: string; count: number }>, lead) => {
+      const statusName = lead.status?.status_name || "Unknown";
+      if (!acc[statusName]) acc[statusName] = { name: statusName, count: 0 };
+      acc[statusName].count += 1;
+      return acc;
+    }, {})
+  );
 
-  // Ranked sources (from by_status as a proxy for top items)
-  const rankedItems = stats.leads.by_status.slice(0, 5).map((s, i) => ({
-    rank: i + 1,
-    name: s.status,
-    count: s.count,
-    positive: i % 2 === 0,
-    pctLabel: `${((s.count / Math.max(stats.leads.total, 1)) * 100).toFixed(1)}%`,
-  }));
 
   // Territory / pipeline data
   const territorySummary = stats.opportunities.by_stage.slice(0, 5).map((s, i) => {
@@ -209,101 +229,87 @@ export default function Dashboard() {
       {/* Row 2: Chart + Territory */}
       <div className="row g-3 mb-4">
         {/* Lead Pipeline Chart */}
-        <div className="col-lg-8">
-          <div className="dash-card">
-            <div className="dash-card-header">
-              <h5>Lead Pipeline</h5>
-              <div className="filter-tabs">
-                <button className="filter-tab active">ALL</button>
-                <button className="filter-tab">1M</button>
-                <button className="filter-tab">6M</button>
-                <button className="filter-tab">1Y</button>
-              </div>
-            </div>
-            <div className="dash-card-body">
-              <div className="chart-ranked-layout">
-                <div className="chart-section">
-                  {barData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={barData} barCategoryGap="30%">
-                        <XAxis
-                          dataKey="name"
-                          tick={{ fontSize: 11, fill: "#74788d" }}
-                          axisLine={{ stroke: "#e0e0e0" }}
-                          tickLine={false}
-                        />
-                        <YAxis
-                          tick={{ fontSize: 11, fill: "#74788d" }}
-                          axisLine={false}
-                          tickLine={false}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            borderRadius: 8,
-                            border: "none",
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                            fontSize: "0.82rem",
-                          }}
-                        />
-                        <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                          {barData.map((_, i) => (
-                            <Cell key={i} fill={BAR_COLORS[i % BAR_COLORS.length]} />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="d-flex align-items-center justify-content-center h-100 text-muted">
-                      No lead data available
-                    </div>
-                  )}
-                </div>
-                <div className="ranked-list">
-                  {rankedItems.map((item) => (
-                    <div className="ranked-item" key={item.rank}>
-                      <div className="ranked-number">{item.rank}</div>
-                      <div className="ranked-name">{item.name}</div>
-                      <span className={`ranked-badge ${item.positive ? "positive" : "negative"}`}>
-                        {item.positive ? "+" : ""}{item.pctLabel}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+        <div className="col-md-8">
+          <div className="card p-3">
+            <h5>Lead Pipeline</h5>
+            <div style={{ height: 260 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={barData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f1f1" />
+                  <XAxis
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#74788d', fontSize: 12 }}
+                    dy={10}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#74788d', fontSize: 12 }}
+                    allowDecimals={false}
+                  />
+                  <Tooltip
+                    cursor={{ fill: '#f8f9fa' }}
+                    content={<CustomTooltip />}
+                  />
+                  <Bar
+                    dataKey="count"
+                    radius={[4, 4, 0, 0]}
+                    barSize={40}
+                  >
+                    {barData.map((_, i) => (
+                      <Cell key={i} fill={BAR_COLORS[i % BAR_COLORS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>
+
 
         {/* Opportunity Stages */}
         <div className="col-lg-4">
           <div className="dash-card">
             <div className="dash-card-header">
               <h5>Opportunity Stages</h5>
-              <div className="sort-by">
-                Sort By:
-                <select defaultValue="all">
-                  <option value="all">All</option>
-                </select>
-              </div>
             </div>
-            <div className="dash-card-body">
+            <div className="dash-card-body" style={{ height: 280, position: 'relative' }}>
               {territorySummary.length > 0 ? (
-                <ul className="territory-list">
-                  {territorySummary.map((t) => (
-                    <li className="territory-item" key={t.name}>
-                      <div className="territory-meta">
-                        <span className="territory-name">{t.name}</span>
-                        <span className="territory-pct">{t.pct}%</span>
-                      </div>
-                      <div className="territory-bar">
-                        <div
-                          className={`territory-bar-fill ${t.color}`}
-                          style={{ width: `${t.pct}%` }}
-                        />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                <>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={territorySummary}
+                        dataKey="count"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                      >
+                        {territorySummary.map((_, i) => (
+                          <Cell key={i} fill={BAR_COLORS[i % BAR_COLORS.length]} stroke="none" />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div style={{
+                    position: 'absolute',
+                    top: '45%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    textAlign: 'center',
+                    pointerEvents: 'none'
+                  }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#495057' }}>{stats.opportunities.total}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#74788d' }}>Total</div>
+                  </div>
+                </>
               ) : (
                 <div className="text-muted text-center py-4">No stage data</div>
               )}

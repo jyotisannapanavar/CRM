@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Save } from "lucide-react";
 import { salesTaskApi, taskSourceApi, taskTypeApi, userApi, leadApi, opportunityApi, prospectApi, User } from "../services/api";
-import { SalesTask } from "../types";
 import SearchableSelect from "../components/SearchableSelect";
 
 interface SalesTaskModalProps {
@@ -83,26 +82,49 @@ export default function SalesTaskModal({ show, onHide, onSave, taskId, readOnly 
                     const leadsData = result.data || result;
                     entities = (Array.isArray(leadsData) ? leadsData : []).map((l: any) => ({
                         id: l.id,
-                        label: `${l.first_name || ''} ${l.last_name || ''} ${l.company_name ? `(${l.company_name})` : ''}`.trim(),
+                        label: `${l.first_name || ''}`.trim(),
                     }));
                     break;
                 }
                 case TASK_SOURCE_PROSPECT: {
                     const result = await prospectApi.list();
                     const prospectsData = result.data || result;
-                    entities = (Array.isArray(prospectsData) ? prospectsData : []).map((p: any) => ({
-                        id: p.id,
-                        label: p.company_name || `Prospect #${p.id}`,
-                    }));
+                    entities = (Array.isArray(prospectsData) ? prospectsData : []).map((p: any) => {
+                        const leadNames = (p.leads || []).map((l: any) => `${l.first_name || ''} ${l.last_name || ''}`.trim()).filter(Boolean).join(', ');
+                        const prospectName = (p.company_name && p.company_name !== 'undefined') ? p.company_name :
+                            (p.name && p.name !== 'undefined') ? p.name :
+                                `Prospect #${p.id}`;
+                        return {
+                            id: p.id,
+                            label: leadNames ? `${prospectName} (${leadNames})` : prospectName,
+                        };
+                    });
                     break;
                 }
                 case TASK_SOURCE_OPPORTUNITY: {
                     const result = await opportunityApi.list();
                     const oppsData = result.data || result;
-                    entities = (Array.isArray(oppsData) ? oppsData : []).map((o: any) => ({
-                        id: o.id,
-                        label: `${o.naming_series || ''} - ${o.party_name || o.company_name || ''}`.trim(),
-                    }));
+                    entities = (Array.isArray(oppsData) ? oppsData : []).map((o: any) => {
+                        let name = o.party_name || o.company_name;
+
+                        if (!name && o.opportunity_from === 'lead' && o.lead) {
+                            name = `${o.lead.first_name || ''} `.trim();
+                        }
+
+                        if (!name && o.opportunity_from === 'customer') {
+                            if (o.customer) name = o.customer.name;
+                            else if (o.contact) name = `${o.contact.first_name || ''}`.trim();
+                        }
+
+                        if (!name && o.opportunity_from === 'prospect' && o.prospect) {
+                            name = o.prospect.name || o.prospect.company_name;
+                        }
+
+                        return {
+                            id: o.id,
+                            label: name ? `${name}` : (o.naming_series || `Opp #${o.id}`),
+                        };
+                    });
                     break;
                 }
             }

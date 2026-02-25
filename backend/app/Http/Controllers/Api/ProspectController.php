@@ -10,9 +10,7 @@ use Exception;
 
 class ProspectController extends Controller
 {
-    public function __construct(private ProspectService $prospectService)
-    {
-    }
+    public function __construct(private ProspectService $prospectService) {}
 
     public function index(Request $request): JsonResponse
     {
