@@ -1,26 +1,45 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { productCategoryApi } from "@/services/api";
-import type { ProductCategory } from "@/types";
-import { Plus, Trash2, Edit2 } from "lucide-react";
+import type { ProductCategory, PaginatedResponse } from "@/types";
+import { Plus, Trash2, Edit2, Search, X, ArrowLeft, ArrowRight } from "lucide-react";
 import Swal from "sweetalert2";
 
 export default function ProductCategoryList() {
     const [categories, setCategories] = useState<ProductCategory[]>([]);
     const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [perPage, setPerPage] = useState(15);
+    const [totalPages, setTotalPages] = useState(1);
+    const [total, setTotal] = useState(0);
 
-    const fetchCategories = () => {
+    const fetchCategories = useCallback((page = 1) => {
         setLoading(true);
+        const params: Record<string, string | number> = { page, per_page: perPage };
+        if (search) params.search = search;
         productCategoryApi
-            .list()
-            .then((data) => setCategories(Array.isArray(data) ? data : []))
+            .list(params)
+            .then((data: PaginatedResponse<ProductCategory>) => {
+                setCategories(data.data || []);
+                setCurrentPage(data.current_page);
+                setTotalPages(data.last_page);
+                setTotal(data.total);
+            })
             .catch(() => setCategories([]))
             .finally(() => setLoading(false));
-    };
+    }, [search, perPage]);
 
     useEffect(() => {
         fetchCategories();
-    }, []);
+    }, [fetchCategories]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchCategories(1);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [search, fetchCategories]);
 
     const handleAdd = async () => {
         const { value: formValues } = await Swal.fire({
@@ -46,7 +65,7 @@ export default function ProductCategoryList() {
             try {
                 await productCategoryApi.create(formValues);
                 Swal.fire("Added!", "Product category has been added.", "success");
-                fetchCategories();
+                fetchCategories(currentPage);
             } catch {
                 Swal.fire("Error", "Failed to add product category.", "error");
             }
@@ -77,7 +96,7 @@ export default function ProductCategoryList() {
             try {
                 await productCategoryApi.update(category.id, formValues);
                 Swal.fire("Updated!", "Product category has been updated.", "success");
-                fetchCategories();
+                fetchCategories(currentPage);
             } catch {
                 Swal.fire("Error", "Failed to update product category.", "error");
             }
@@ -97,7 +116,7 @@ export default function ProductCategoryList() {
             try {
                 await productCategoryApi.delete(id);
                 Swal.fire("Deleted!", "Product category has been deleted.", "success");
-                fetchCategories();
+                fetchCategories(currentPage);
             } catch {
                 Swal.fire("Error", "Failed to delete product category.", "error");
             }
@@ -120,10 +139,37 @@ export default function ProductCategoryList() {
             </nav>
 
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <h2 className="mb-0">Product Categories</h2>
+                <h2 className="mb-0">
+                    Product Categories
+                    {total > 0 && <small className="text-muted ms-2" style={{ fontSize: "0.5em" }}>({total})</small>}
+                </h2>
                 <button className="btn btn-primary" onClick={handleAdd}>
                     <Plus size={18} className="me-1" /> Add Category
                 </button>
+            </div>
+
+            <div className="row g-2 mb-3">
+                <div className="col-md-4">
+                    <div className="position-relative">
+                        <Search size={16} className="position-absolute top-50 translate-middle-y ms-3 text-muted" />
+                        <input
+                            type="text"
+                            className="form-control ps-5"
+                            placeholder="Search categories..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                        {search && (
+                            <button
+                                className="btn btn-link position-absolute top-50 end-0 translate-middle-y text-muted"
+                                onClick={() => setSearch("")}
+                                style={{ textDecoration: "none" }}
+                            >
+                                <X size={16} />
+                            </button>
+                        )}
+                    </div>
+                </div>
             </div>
 
             <div className="card">
@@ -147,7 +193,7 @@ export default function ProductCategoryList() {
                             )}
                             {categories.map((category, index) => (
                                 <tr key={category.id}>
-                                    <td>{index + 1}</td>
+                                    <td>{(currentPage - 1) * perPage + index + 1}</td>
                                     <td>
                                         <span className="badge bg-success">{category.name}</span>
                                     </td>
@@ -173,6 +219,63 @@ export default function ProductCategoryList() {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination */}
+                {total > 0 && (
+                    <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 px-3 pb-3 border-top pt-3">
+                        <div className="d-flex align-items-center mb-2 mb-md-0">
+                            <span className="small text-muted me-2">Rows per page:</span>
+                            <select
+                                className="form-select form-select-sm"
+                                style={{ width: "auto" }}
+                                value={perPage}
+                                onChange={(e) => {
+                                    setPerPage(Number(e.target.value));
+                                    setCurrentPage(1);
+                                }}
+                            >
+                                {[10, 15, 20, 25, 50].map((opt) => (
+                                    <option key={opt} value={opt}>
+                                        {opt}
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="small text-muted ms-3">
+                                {(currentPage - 1) * perPage + 1}-
+                                {Math.min(currentPage * perPage, total)} of {total}
+                            </div>
+                        </div>
+                        <nav>
+                            <ul className="pagination pagination-sm mb-0">
+                                <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                                    <button 
+                                        className="page-link border-0" 
+                                        onClick={() => fetchCategories(currentPage - 1)} 
+                                        disabled={currentPage === 1}
+                                        title="Previous Page"
+                                    >
+                                        <ArrowLeft size={16} />
+                                    </button>
+                                </li>
+                                <li className="page-item disabled">
+                                    <span className="page-link border-0 text-dark bg-transparent font-weight-bold">
+                                        Page {currentPage} of {totalPages}
+                                    </span>
+                                </li>
+                                <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                                    <button 
+                                        className="page-link border-0" 
+                                        onClick={() => fetchCategories(currentPage + 1)} 
+                                        disabled={currentPage === totalPages}
+                                        title="Next Page"
+                                    >
+                                        <ArrowRight size={16} />
+                                    </button>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                )}
             </div>
         </div>
     );

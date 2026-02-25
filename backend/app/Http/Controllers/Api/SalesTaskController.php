@@ -10,31 +10,64 @@ use App\Models\Prospect;
 use App\Models\Opportunity;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Arr;
+use Exception;
 
 class SalesTaskController extends Controller
 {
     public function index(Request $request)
     {
-        $query = SalesTask::with(['taskSource', 'taskType', 'assignedUser']);
+        try {
+            $query = SalesTask::with(['taskSource', 'taskType', 'assignedUser']);
 
-        // Filter by task_source_id (Lead=1, Prospect=2, Opportunity=3)
-        if ($request->has('task_source_id')) {
-            $query->where('task_source_id', $request->task_source_id);
+            // Filter by task_source_id (Lead=1, Prospect=2, Opportunity=3)
+            if ($request->has('task_source_id')) {
+                $query->where('task_source_id', $request->task_source_id);
+            }
+
+            // Filter by specific source entity
+            if ($request->has('source_id')) {
+                $query->where('source_id', $request->source_id);
+            }
+
+            // Filter by task type
+            if ($request->has('task_type_id')) {
+                $query->where('task_type_id', $request->task_type_id);
+            }
+
+            // Filter by assigned user
+            if ($request->has('sales_assign_id')) {
+                $query->where('sales_assign_id', $request->sales_assign_id);
+            }
+
+            $perPage = $request->query('per_page', 15);
+            $queryParameters = Arr::except($request->query(), ['user_id']);
+
+            $data = $query->latest()->paginate($perPage)->appends($queryParameters);
+
+            // Append source entity details to each task
+            $data->getCollection()->each(function ($task) {
+                $task->source_detail = $this->getSourceDetail($task);
+            });
+
+            return response()->json([
+                'message' => 'All sales tasks retrieved successfully.',
+                'data' => $data,
+                'pagination' => [
+                    'current_page' => $data->currentPage(),
+                    'total_pages' => $data->lastPage(),
+                    'per_page' => $data->perPage(),
+                    'total_items' => $data->total(),
+                    'next_page_url' => $data->nextPageUrl(),
+                    'prev_page_url' => $data->previousPageUrl(),
+                ],
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'error' => 'Failed to retrieve sales tasks',
+                'message' => $e->getMessage()
+            ], 500);
         }
-
-        // Filter by specific source entity
-        if ($request->has('source_id')) {
-            $query->where('source_id', $request->source_id);
-        }
-
-        $salesTasks = $query->latest()->get();
-
-        // Append source entity details to each task
-        $salesTasks->each(function ($task) {
-            $task->source_detail = $this->getSourceDetail($task);
-        });
-
-        return response()->json($salesTasks);
     }
 
     public function store(Request $request)

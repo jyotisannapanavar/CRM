@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { productApi, productCategoryApi } from "@/services/api";
-import type { Product, ProductCategory } from "@/types";
-import { Plus, Trash2, Edit2, Eye, Search, X } from "lucide-react";
+import type { Product, ProductCategory, PaginatedResponse } from "@/types";
+import { Plus, Trash2, Edit2, Eye, Search, X, ArrowLeft, ArrowRight } from "lucide-react";
 import Swal from "sweetalert2";
 
 export default function ProductList() {
@@ -11,38 +11,37 @@ export default function ProductList() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [categoryFilter, setCategoryFilter] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [perPage, setPerPage] = useState(15);
+    const [totalPages, setTotalPages] = useState(1);
+    const [total, setTotal] = useState(0);
 
-    const fetchProducts = useCallback(() => {
+    const fetchProducts = useCallback((page = 1) => {
         setLoading(true);
+        const params: Record<string, string | number> = { page, per_page: perPage };
+        if (search) params.search = search;
+        if (categoryFilter) params.category_id = categoryFilter;
         productApi
-            .list()
-            .then((data) => {
-                let items = Array.isArray(data) ? data : [];
-                if (search) {
-                    const q = search.toLowerCase();
-                    items = items.filter(
-                        (p) =>
-                            p.name.toLowerCase().includes(q) ||
-                            (p.code && p.code.toLowerCase().includes(q))
-                    );
-                }
-                if (categoryFilter) {
-                    items = items.filter(
-                        (p) => p.category_id === Number(categoryFilter)
-                    );
-                }
-                setProducts(items);
+            .list(params)
+            .then((data: PaginatedResponse<Product>) => {
+                setProducts(data.data || []);
+                setCurrentPage(data.current_page);
+                setTotalPages(data.last_page);
+                setTotal(data.total);
             })
             .catch(() => setProducts([]))
             .finally(() => setLoading(false));
-    }, [search, categoryFilter]);
+    }, [search, categoryFilter, perPage]);
 
     useEffect(() => {
-        productCategoryApi.list().then((data) => setCategories(Array.isArray(data) ? data : []));
+        productCategoryApi.listAll().then((data) => setCategories(Array.isArray(data) ? data : []));
     }, []);
 
     useEffect(() => {
-        fetchProducts();
+        const timer = setTimeout(() => {
+            fetchProducts(1);
+        }, 300);
+        return () => clearTimeout(timer);
     }, [fetchProducts]);
 
     const viewProduct = async (product: Product) => {
@@ -83,7 +82,7 @@ export default function ProductList() {
             try {
                 await productApi.delete(id);
                 Swal.fire("Deleted!", "Product has been deleted.", "success");
-                fetchProducts();
+                fetchProducts(currentPage);
             } catch {
                 Swal.fire("Error", "Failed to delete product.", "error");
             }
@@ -101,7 +100,10 @@ export default function ProductList() {
                 </ol>
             </nav>
             <div className="d-flex justify-content-between align-items-center mb-3">
-                <h2>Products</h2>
+                <h2>
+                    Products
+                    {total > 0 && <small className="text-muted ms-2" style={{ fontSize: "0.5em" }}>({total})</small>}
+                </h2>
                 <Link to="/products/new" className="btn btn-primary">
                     <Plus size={16} className="me-1" /> New Product
                 </Link>
@@ -154,76 +156,135 @@ export default function ProductList() {
                     </Link>
                 </div>
             ) : (
-                <div className="table-container">
-                    <table className="table table-hover mb-0">
-                        <thead className="table-light">
-                            <tr>
-                                <th>#</th>
-                                <th>Name</th>
-                                <th>Code</th>
-                                <th>Category</th>
-                                <th>Stock</th>
-                                <th>Rate</th>
-                                <th>Amount</th>
-                                <th className="text-end">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {products.map((product, index) => (
-                                <tr key={product.id}>
-                                    <td>{index + 1}</td>
-                                    <td className="fw-medium">
-                                        <Link
-                                            to={`/products/${product.id}/edit`}
-                                            className="text-decoration-none text-dark"
-                                        >
-                                            {product.name}
-                                        </Link>
-                                    </td>
-                                    <td>
-                                        {product.code ? (
-                                            <span className="badge bg-secondary">{product.code}</span>
-                                        ) : (
-                                            "-"
-                                        )}
-                                    </td>
-                                    <td>
-                                        {product.category ? (
-                                            <span className="badge bg-success">{product.category.name}</span>
-                                        ) : (
-                                            "-"
-                                        )}
-                                    </td>
-                                    <td>{product.stock}</td>
-                                    <td>₹{Number(product.rate).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                    <td>₹{Number(product.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                    <td className="text-end">
-                                        <button
-                                            className="btn btn-sm btn-outline-secondary me-1"
-                                            onClick={() => viewProduct(product)}
-                                            title="View"
-                                        >
-                                            <Eye size={14} />
-                                        </button>
-                                        <Link
-                                            to={`/products/${product.id}/edit`}
-                                            className="btn btn-sm btn-outline-primary me-1"
-                                            title="Edit"
-                                        >
-                                            <Edit2 size={14} />
-                                        </Link>
-                                        <button
-                                            className="btn btn-sm btn-outline-danger"
-                                            onClick={() => handleDelete(product.id)}
-                                            title="Delete"
-                                        >
-                                            <Trash2 size={14} />
-                                        </button>
-                                    </td>
+                <div className="card">
+                    <div className="card-body p-0">
+                        <table className="table table-hover mb-0">
+                            <thead className="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Name</th>
+                                    <th>Code</th>
+                                    <th>Category</th>
+                                    <th>Stock</th>
+                                    <th>Rate</th>
+                                    <th>Amount</th>
+                                    <th className="text-end">Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {products.map((product, index) => (
+                                    <tr key={product.id}>
+                                        <td>{(currentPage - 1) * perPage + index + 1}</td>
+                                        <td className="fw-medium">
+                                            <Link
+                                                to={`/products/${product.id}/edit`}
+                                                className="text-decoration-none text-dark"
+                                            >
+                                                {product.name}
+                                            </Link>
+                                        </td>
+                                        <td>
+                                            {product.code ? (
+                                                <span className="badge bg-secondary">{product.code}</span>
+                                            ) : (
+                                                "-"
+                                            )}
+                                        </td>
+                                        <td>
+                                            {product.category ? (
+                                                <span className="badge bg-success">{product.category.name}</span>
+                                            ) : (
+                                                "-"
+                                            )}
+                                        </td>
+                                        <td>{product.stock}</td>
+                                        <td>₹{Number(product.rate).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                        <td>₹{Number(product.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                        <td className="text-end">
+                                            <button
+                                                className="btn btn-sm btn-outline-secondary me-1"
+                                                onClick={() => viewProduct(product)}
+                                                title="View"
+                                            >
+                                                <Eye size={14} />
+                                            </button>
+                                            <Link
+                                                to={`/products/${product.id}/edit`}
+                                                className="btn btn-sm btn-outline-primary me-1"
+                                                title="Edit"
+                                            >
+                                                <Edit2 size={14} />
+                                            </Link>
+                                            <button
+                                                className="btn btn-sm btn-outline-danger"
+                                                onClick={() => handleDelete(product.id)}
+                                                title="Delete"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Pagination */}
+                    {total > 0 && (
+                        <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 px-3 pb-3 border-top pt-3">
+                            <div className="d-flex align-items-center mb-2 mb-md-0">
+                                <span className="small text-muted me-2">Rows per page:</span>
+                                <select
+                                    className="form-select form-select-sm"
+                                    style={{ width: "auto" }}
+                                    value={perPage}
+                                    onChange={(e) => {
+                                        setPerPage(Number(e.target.value));
+                                        setCurrentPage(1);
+                                    }}
+                                >
+                                    {[10, 15, 20, 25, 50].map((opt) => (
+                                        <option key={opt} value={opt}>
+                                            {opt}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="small text-muted ms-3">
+                                    {(currentPage - 1) * perPage + 1}-
+                                    {Math.min(currentPage * perPage, total)} of {total}
+                                </div>
+                            </div>
+                            <nav>
+                                <ul className="pagination pagination-sm mb-0">
+                                    <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                                        <button 
+                                            className="page-link border-0" 
+                                            onClick={() => fetchProducts(currentPage - 1)} 
+                                            disabled={currentPage === 1}
+                                            title="Previous Page"
+                                        >
+                                            <ArrowLeft size={16} />
+                                        </button>
+                                    </li>
+                                    <li className="page-item disabled">
+                                        <span className="page-link border-0 text-dark bg-transparent font-weight-bold">
+                                            Page {currentPage} of {totalPages}
+                                        </span>
+                                    </li>
+                                    <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                                        <button 
+                                            className="page-link border-0" 
+                                            onClick={() => fetchProducts(currentPage + 1)} 
+                                            disabled={currentPage === totalPages}
+                                            title="Next Page"
+                                        >
+                                            <ArrowRight size={16} />
+                                        </button>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

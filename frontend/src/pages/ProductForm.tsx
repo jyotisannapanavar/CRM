@@ -23,7 +23,7 @@ export default function ProductForm() {
     });
 
     useEffect(() => {
-        productCategoryApi.list().then((data) => setCategories(Array.isArray(data) ? data : []));
+        productCategoryApi.listAll().then((data) => setCategories(Array.isArray(data) ? data : []));
     }, []);
 
     useEffect(() => {
