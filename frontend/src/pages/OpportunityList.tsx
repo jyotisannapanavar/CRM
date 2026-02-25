@@ -9,7 +9,8 @@ import OpportunityDetailsModal from "@/components/OpportunityDetailsModal";
 export default function OpportunityList() {
   const [items, setItems] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [stageFilter, setStageFilter] = useState("");
@@ -18,6 +19,13 @@ export default function OpportunityList() {
   const [types, setTypes] = useState<OpportunityType[]>([]);
   const [stages, setStages] = useState<OpportunityStage[]>([]);
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
 
   useEffect(() => {
     Promise.all([
@@ -34,14 +42,17 @@ export default function OpportunityList() {
   const fetchItems = useCallback(() => {
     setLoading(true);
     const params: Record<string, string> = {};
-    if (search) params.search = search;
+    if (debouncedSearch) params.search = debouncedSearch;
     if (statusFilter) params.status_id = statusFilter;
     if (typeFilter) params.opportunity_type_id = typeFilter;
     if (stageFilter) params.opportunity_stage_id = stageFilter;
     opportunityApi.list(params).then((res) => {
       setItems(Array.isArray(res) ? res : res.data || []);
+    }).catch(err => {
+      console.error("Error fetching opportunities:", err);
+      setItems([]);
     }).finally(() => setLoading(false));
-  }, [search, statusFilter, typeFilter, stageFilter]);
+  }, [debouncedSearch, statusFilter, typeFilter, stageFilter]);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
 
@@ -68,7 +79,7 @@ export default function OpportunityList() {
       </div>
       <div className="row g-2 mb-3">
         <div className="col-md-3">
-          <input type="text" className="form-control" placeholder="Search opportunities..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input type="text" className="form-control" placeholder="Search opportunities..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
         </div>
         <div className="col-md-2">
           <select className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>

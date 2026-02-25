@@ -19,7 +19,23 @@ class OpportunityController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('party_name', 'like', "%{$search}%")
-                    ->orWhere('company_name', 'like', "%{$search}%");
+                    ->orWhere('company_name', 'like', "%{$search}%")
+                    ->orWhere('naming_series', 'like', "%{$search}%")
+                    ->orWhereHas('lead', function ($query) use ($search) {
+                        $query->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%")
+                            ->orWhere('company_name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('customer', function ($query) use ($search) {
+                        $query->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('contact', function ($query) use ($search) {
+                        $query->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('prospect', function ($query) use ($search) {
+                        $query->where('company_name', 'like', "%{$search}%");
+                    });
             });
         }
 
